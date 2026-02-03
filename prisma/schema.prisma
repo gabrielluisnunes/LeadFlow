@@ -1,15 +1,93 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  memberships WorkspaceMember[]
+  notes       LeadNote[]
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  members   WorkspaceMember[]
+  leads     Lead[]
+  followUps FollowUp[]
+  notes     LeadNote[]
+}
+
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        String
+
+  user      User      @relation(fields: [userId], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@unique([userId, workspaceId])
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  workspaceId String
+
+  name   String
+  phone  String
+  email  String?
+  source String?
+  status LeadStatus
+
+  createdAt DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  followUps FollowUp[]
+  notes     LeadNote[]
+}
+
+model FollowUp {
+  id          String   @id @default(cuid())
+  workspaceId String
+  leadId      String
+
+  scheduledAt DateTime
+  doneAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  lead      Lead      @relation(fields: [leadId], references: [id])
+}
+
+model LeadNote {
+  id          String   @id @default(cuid())
+  workspaceId String
+  leadId      String
+  authorId    String
+
+  content   String
+  createdAt DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  lead      Lead      @relation(fields: [leadId], references: [id])
+  author   User      @relation(fields: [authorId], references: [id])
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  WON
+  LOST
 }
