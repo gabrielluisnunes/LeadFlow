@@ -23,7 +23,7 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: typeof prisma) => {
       const workspace = await tx.workspace.create({
         data: { name: workspaceName }
       })
