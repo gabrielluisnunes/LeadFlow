@@ -1,6 +1,7 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
+import { authRoutes } from './modules/auth/auth.routes.js'
 
 export const app = Fastify({
   logger: true
@@ -13,3 +14,8 @@ await app.register(cors, {
 await app.register(jwt, {
   secret: process.env.JWT_SECRET || 'dev-secret'
 })
+
+await app.register(authRoutes, 
+  { prefix: '/auth' 
+    
+  })
