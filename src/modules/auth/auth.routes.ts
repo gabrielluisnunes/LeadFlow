@@ -20,4 +20,23 @@ export async function authRoutes(app: FastifyInstance) {
     })
   })
 
+    app.post('/login', async (request, reply) => {
+    const body = loginSchema.parse(request.body)
+
+    const result = await authService.login(
+      body.email,
+      body.password
+    )
+
+    const token = app.jwt.sign({
+      userId: result.user.id,
+      workspaceId: result.workspace.id
+    })
+
+    return reply.send({
+      token
+    })
+  })
+
+
 } 
