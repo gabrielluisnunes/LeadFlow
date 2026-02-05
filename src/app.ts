@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import { authRoutes } from './modules/auth/auth.routes.js'
 import { authPlugin } from './plugins/auth.js'
+import { leadsRoutes } from './modules/leads/leads.routes.js'
 
 export const app = Fastify({
   logger: true
@@ -22,5 +23,10 @@ await app.register(authRoutes,
   { prefix: '/auth' 
     
   })
+
+await app.register(leadsRoutes, {
+  prefix: '/leads'
+})
+
 
 
