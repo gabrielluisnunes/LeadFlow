@@ -1,6 +1,7 @@
+import fp from 'fastify-plugin'
 import { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify'
 
-export const authPlugin: FastifyPluginAsync = async (app) => {
+const authPlugin: FastifyPluginAsync = async (app) => {
   app.decorate(
     'authenticate',
     async function (request: FastifyRequest, reply: FastifyReply) {
@@ -14,3 +15,5 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     }
   )
 }
+
+export default fp(authPlugin)
