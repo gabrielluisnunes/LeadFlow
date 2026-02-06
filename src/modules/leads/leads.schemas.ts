@@ -6,3 +6,7 @@ export const createLeadSchema = z.object({
     email: z.string().email().optional(),
     source: z.string().optional(),
 })
+
+export const updateLeadStatusSchema = z.object({
+  status: z.enum(['NEW', 'CONTACTED', 'WON', 'LOST'])
+})
