@@ -33,6 +33,15 @@ export async function followUpsRoutes(app: FastifyInstance) {
     return followUps
   })
 
+    app.get('/today', async (request) => {
+    const workspaceId = request.user.workspaceId
+
+    const followUps = await followUpsService.listToday(workspaceId)
+
+    return followUps
+  })
+
+
   app.patch('/:followUpId/done', async (request) => {
     const { followUpId } = request.params as { followUpId: string }
     const workspaceId = request.user.workspaceId
