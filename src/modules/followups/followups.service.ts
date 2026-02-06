@@ -61,18 +61,31 @@ export class FollowUpsService {
     return followUps
   }
 
-  async markAsDone(params: { workspaceId: string; followUpId: string }) {
-    const followUp = await prisma.followUp.update({
+    async markAsDone(params: { workspaceId: string; followUpId: string }) {
+
+    const followUp = await prisma.followUp.findFirst({
       where: {
-        id: params.followUpId
+        id: params.followUpId,
+        workspaceId: params.workspaceId
+      }
+    })
+
+    if (!followUp) {
+      throw new Error('Follow-up não encontrado')
+    }
+
+    const updated = await prisma.followUp.update({
+      where: {
+        id: followUp.id
       },
       data: {
         doneAt: new Date()
       }
     })
 
-    return followUp
+    return updated
   }
+
 
     async listOverdue(workspaceId: string) {
     const now = new Date()
