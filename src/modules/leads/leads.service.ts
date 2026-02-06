@@ -37,4 +37,34 @@ export class LeadsService {
  
         return
     }
+
+      async updateStatus(params: {
+    workspaceId: string
+    leadId: string
+    status: 'NEW' | 'CONTACTED' | 'WON' | 'LOST'
+  }) {
+
+    const lead = await prisma.lead.findFirst({
+      where: {
+        id: params.leadId,
+        workspaceId: params.workspaceId
+      }
+    })
+
+    if (!lead) {
+      throw new Error('Lead not found')
+    }
+
+    const updated = await prisma.lead.update({
+      where: {
+        id: lead.id
+      },
+      data: {
+        status: params.status
+      }
+    })
+
+    return updated
+  }
+
 }
