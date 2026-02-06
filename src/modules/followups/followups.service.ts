@@ -20,6 +20,33 @@ export class FollowUpsService {
     return followUp
   }
 
+  async listToday(workspaceId: string) {
+    const startOfDay = new Date()
+    startOfDay.setHours(0, 0, 0, 0)
+
+    const endOfDay = new Date()
+    endOfDay.setHours(23, 59, 59, 999)
+
+    const followUps = await prisma.followUp.findMany({
+      where: {
+        workspaceId,
+        doneAt: null,
+        scheduledAt: {
+          gte: startOfDay,
+          lte: endOfDay
+        }
+      },
+      orderBy: {
+        scheduledAt: 'asc'
+      },
+      include: {
+        lead: true
+      }
+    })
+
+    return followUps
+  }
+
   async listByLead(params: { workspaceId: string; leadId: string }) {
     const followUps = await prisma.followUp.findMany({
       where: {
