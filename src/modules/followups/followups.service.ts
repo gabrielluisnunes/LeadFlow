@@ -73,4 +73,53 @@ export class FollowUpsService {
 
     return followUp
   }
+
+    async listOverdue(workspaceId: string) {
+    const now = new Date()
+
+    const followUps = await prisma.followUp.findMany({
+      where: {
+        workspaceId,
+        doneAt: null,
+        scheduledAt: {
+          lt: now
+        }
+      },
+      orderBy: {
+        scheduledAt: 'asc'
+      },
+      include: {
+        lead: true
+      }
+    })
+
+    return followUps
+  }
+
+    async listUpcoming(workspaceId: string) {
+    const now = new Date()
+
+    const limitDate = new Date()
+    limitDate.setDate(limitDate.getDate() + 7)
+
+    const followUps = await prisma.followUp.findMany({
+      where: {
+        workspaceId,
+        doneAt: null,
+        scheduledAt: {
+          gt: now,
+          lte: limitDate
+        }
+      },
+      orderBy: {
+        scheduledAt: 'asc'
+      },
+      include: {
+        lead: true
+      }
+    })
+
+    return followUps
+  }
+
 }
