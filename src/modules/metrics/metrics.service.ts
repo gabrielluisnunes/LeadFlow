@@ -2,7 +2,7 @@ import {prisma} from '../../lib/prisma.js';
 import {LeadStatus} from '@prisma/client';
 
 export class MetricsService {
-    async getLeadsOveerview(workspaceId: string) {
+    async getLeadsOverview(workspaceId: string) {
         const totalLeads = await prisma.lead.count({
             where: {
                 workspaceId
