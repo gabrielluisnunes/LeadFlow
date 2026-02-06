@@ -41,6 +41,21 @@ export async function followUpsRoutes(app: FastifyInstance) {
     return followUps
   })
 
+    app.get('/overdue', async (request) => {
+    const workspaceId = request.user.workspaceId
+
+    const followUps = await followUpsService.listOverdue(workspaceId)
+
+    return followUps
+  })
+
+    app.get('/upcoming', async (request) => {
+    const workspaceId = request.user.workspaceId
+
+    const followUps = await followUpsService.listUpcoming(workspaceId)
+
+    return followUps
+  })
 
   app.patch('/:followUpId/done', async (request) => {
     const { followUpId } = request.params as { followUpId: string }
