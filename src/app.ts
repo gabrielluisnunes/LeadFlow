@@ -7,6 +7,7 @@ import { leadsRoutes } from './modules/leads/leads.routes.js'
 import authPlugin from './plugins/auth.js'
 import { followUpsRoutes } from './modules/followups/followups.routes.js'
 import { metricsRoutes } from './modules/metrics/metrics.routes.js'
+import { activitiesRoutes } from './modules/activities/activities.routes.js'
 
 
 export const app = Fastify({
@@ -37,4 +38,8 @@ await app.register(followUpsRoutes, {
 
 await app.register(metricsRoutes, {
   prefix: '/metrics'
+})
+
+await app.register(activitiesRoutes, {
+  prefix: '/activities'
 })
