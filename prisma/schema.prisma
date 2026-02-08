@@ -27,6 +27,7 @@ model Workspace {
   leads     Lead[]
   followUps FollowUp[]
   notes     LeadNote[]
+  activities Activity[]
 }
 
 model WorkspaceMember {
@@ -90,4 +91,27 @@ enum LeadStatus {
   CONTACTED
   WON
   LOST
+}
+
+enum ActivityType {
+  LEAD_CREATED
+  LEAD_STATUS_UPDATED
+  FOLLOWUP_CREATED
+  FOLLOWUP_DONE
+}
+
+model Activity {
+  id          String       @id @default(uuid())
+  workspaceId String
+
+  type        ActivityType
+
+  leadId      String?
+  followUpId  String?
+
+  payload     Json?
+
+  createdAt   DateTime     @default(now())
+
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id])
 }
