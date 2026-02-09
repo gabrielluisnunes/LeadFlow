@@ -1,5 +1,5 @@
 import { prisma } from '../../lib/prisma.js'
-import { LeadStatus } from '@prisma/client'
+import { LeadStatus, ActivityType } from '@prisma/client'
 import { ActivitiesService } from '../activities/activities.service.js'
 
 interface CreateLeadInput {
@@ -28,7 +28,7 @@ export class LeadsService {
 
     await this.activities.create({
       workspaceId: data.workspaceId,
-      type: 'LEAD_CREATED',
+      type: ActivityType.LEAD_CREATED,
       leadId: lead.id,
       payload: {
         name: lead.name
@@ -54,7 +54,7 @@ export class LeadsService {
   async updateStatus(params: {
     workspaceId: string
     leadId: string
-    status: 'NEW' | 'CONTACTED' | 'WON' | 'LOST'
+    status: LeadStatus
   }) {
 
     const lead = await prisma.lead.findFirst({
@@ -81,7 +81,7 @@ export class LeadsService {
 
     await this.activities.create({
       workspaceId: params.workspaceId,
-      type: 'LEAD_STATUS_UPDATED',
+      type: ActivityType.LEAD_STATUS_UPDATED,
       leadId: updated.id,
       payload: {
         from: oldStatus,

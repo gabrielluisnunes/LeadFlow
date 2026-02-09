@@ -18,7 +18,7 @@ export class ActivitiesService {
         type: data.type,
         leadId: data.leadId,
         followUpId: data.followUpId,
-        payload: data.payload
+        payload: data.payload as any
       }
     })
   }
