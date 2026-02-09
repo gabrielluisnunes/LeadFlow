@@ -1,4 +1,6 @@
 import { prisma } from '../../lib/prisma.js'
+import { ActivityType } from '@prisma/client'
+import { ActivitiesService } from '../activities/activities.service.js'
 
 interface CreateFollowUpInput {
   workspaceId: string
@@ -8,12 +10,24 @@ interface CreateFollowUpInput {
 
 export class FollowUpsService {
 
+  private activities = new ActivitiesService()
+
   async create(data: CreateFollowUpInput) {
     const followUp = await prisma.followUp.create({
       data: {
         workspaceId: data.workspaceId,
         leadId: data.leadId,
         scheduledAt: data.scheduledAt
+      }
+    })
+
+    await this.activities.create({
+      workspaceId: data.workspaceId,
+      type: ActivityType.FOLLOWUP_CREATED,
+      leadId: data.leadId,
+      followUpId: followUp.id,
+      payload: {
+        scheduledAt: followUp.scheduledAt
       }
     })
 
@@ -61,7 +75,7 @@ export class FollowUpsService {
     return followUps
   }
 
-    async markAsDone(params: { workspaceId: string; followUpId: string }) {
+  async markAsDone(params: { workspaceId: string; followUpId: string }) {
 
     const followUp = await prisma.followUp.findFirst({
       where: {
@@ -83,11 +97,17 @@ export class FollowUpsService {
       }
     })
 
+    await this.activities.create({
+      workspaceId: params.workspaceId,
+      type: ActivityType.FOLLOWUP_DONE,
+      leadId: updated.leadId,
+      followUpId: updated.id
+    })
+
     return updated
   }
 
-
-    async listOverdue(workspaceId: string) {
+  async listOverdue(workspaceId: string) {
     const now = new Date()
 
     const followUps = await prisma.followUp.findMany({
@@ -109,7 +129,7 @@ export class FollowUpsService {
     return followUps
   }
 
-    async listUpcoming(workspaceId: string) {
+  async listUpcoming(workspaceId: string) {
     const now = new Date()
 
     const limitDate = new Date()
@@ -134,5 +154,4 @@ export class FollowUpsService {
 
     return followUps
   }
-
 }
