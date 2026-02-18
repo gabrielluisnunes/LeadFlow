@@ -13,6 +13,17 @@ export class FollowUpsService {
   private activities = new ActivitiesService()
 
   async create(data: CreateFollowUpInput) {
+    const lead = await prisma.lead.findFirst({
+      where: {
+        id: data.leadId,
+        workspaceId: data.workspaceId
+      }
+    })
+
+    if (!lead) {
+      throw new Error('Lead não encontrado')
+    }
+
     const followUp = await prisma.followUp.create({
       data: {
         workspaceId: data.workspaceId,
