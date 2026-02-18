@@ -1,6 +1,7 @@
 import { prisma } from '../../lib/prisma.js'
 import { LeadStatus, ActivityType } from '@prisma/client'
 import { ActivitiesService } from '../activities/activities.service.js'
+import { NotFoundError } from '../../errors/app-error.js'
 
 interface CreateLeadInput {
   workspaceId: string
@@ -65,7 +66,7 @@ export class LeadsService {
     })
 
     if (!lead) {
-      throw new Error('Lead não encontrado')
+      throw new NotFoundError('Lead não encontrado')
     }
 
     const oldStatus = lead.status

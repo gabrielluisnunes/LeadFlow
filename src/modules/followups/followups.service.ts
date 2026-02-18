@@ -1,6 +1,7 @@
 import { prisma } from '../../lib/prisma.js'
 import { ActivityType } from '@prisma/client'
 import { ActivitiesService } from '../activities/activities.service.js'
+import { NotFoundError } from '../../errors/app-error.js'
 
 interface CreateFollowUpInput {
   workspaceId: string
@@ -22,7 +23,7 @@ export class FollowUpsService {
       })
 
       if (!lead) {
-        throw new Error('Lead não encontrado')
+        throw new NotFoundError('Lead não encontrado')
       }
 
       const followUp = await tx.followUp.create({
@@ -101,7 +102,7 @@ export class FollowUpsService {
       })
 
       if (!followUp) {
-        throw new Error('Follow-up não encontrado')
+        throw new NotFoundError('Follow-up não encontrado')
       }
 
       const updated = await tx.followUp.update({

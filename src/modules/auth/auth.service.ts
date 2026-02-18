@@ -1,5 +1,10 @@
 import bcrypt from 'bcrypt'
 import { prisma } from '../../lib/prisma.js'
+import {
+  ConflictError,
+  ForbiddenError,
+  UnauthorizedError
+} from '../../errors/app-error.js'
 
 interface RegisterInput {
   name: string
@@ -18,7 +23,7 @@ export class AuthService {
     })
 
     if (userAlreadyExists) {
-      throw new Error('Usuário email já cadastrado.')
+      throw new ConflictError('Usuário email já cadastrado.')
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
@@ -63,19 +68,19 @@ export class AuthService {
     })
 
     if (!user) {
-      throw new Error('Credenciais inválidas')
+      throw new UnauthorizedError('Credenciais inválidas')
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password)
 
     if (!passwordMatch) {
-      throw new Error('Credenciais inválidas')
+      throw new UnauthorizedError('Credenciais inválidas')
     }
 
     const membership = user.memberships[0]
 
     if (!membership) {
-      throw new Error('Nenhum workspace associado ao usuário')
+      throw new ForbiddenError('Nenhum workspace associado ao usuário')
     }
 
     return {
