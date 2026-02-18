@@ -1,20 +1,23 @@
-import { env } from './lib/env'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
+import { ProtectedRoute } from './modules/auth/protected-route'
+import { HomePage } from './pages/home-page'
+import { LoginPage } from './pages/login-page'
 
 function App() {
   return (
-    <main className="app-shell">
-      <h1>LeadFlow Frontend</h1>
-
-      <p>Base técnica criada com cliente API tipado e suporte a JWT.</p>
-
-      <ul>
-        <li>Backend URL: {env.apiBaseUrl}</li>
-        <li>Contrato esperado: sucesso em {`{ data: ... }`} e erro em {`{ error: ... }`}</li>
-      </ul>
-
-      <p>Próximo passo: aplicar o design quando você enviar o Figma.</p>
-    </main>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/app"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/app" replace />} />
+    </Routes>
   )
 }
 
