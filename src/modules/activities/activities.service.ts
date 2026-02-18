@@ -1,5 +1,5 @@
 import { prisma } from '../../lib/prisma.js'
-import { ActivityType } from '@prisma/client'
+import { ActivityType, Prisma, PrismaClient } from '@prisma/client'
 
 interface CreateActivityInput {
   workspaceId: string
@@ -9,10 +9,12 @@ interface CreateActivityInput {
   payload?: unknown
 }
 
+type DbClient = PrismaClient | Prisma.TransactionClient
+
 export class ActivitiesService {
 
-  async create(data: CreateActivityInput) {
-    return prisma.activity.create({
+  async create(data: CreateActivityInput, db: DbClient = prisma) {
+    return db.activity.create({
       data: {
         workspaceId: data.workspaceId,
         type: data.type,

@@ -13,36 +13,41 @@ export class FollowUpsService {
   private activities = new ActivitiesService()
 
   async create(data: CreateFollowUpInput) {
-    const lead = await prisma.lead.findFirst({
-      where: {
-        id: data.leadId,
-        workspaceId: data.workspaceId
+    return prisma.$transaction(async (tx) => {
+      const lead = await tx.lead.findFirst({
+        where: {
+          id: data.leadId,
+          workspaceId: data.workspaceId
+        }
+      })
+
+      if (!lead) {
+        throw new Error('Lead não encontrado')
       }
+
+      const followUp = await tx.followUp.create({
+        data: {
+          workspaceId: data.workspaceId,
+          leadId: data.leadId,
+          scheduledAt: data.scheduledAt
+        }
+      })
+
+      await this.activities.create(
+        {
+          workspaceId: data.workspaceId,
+          type: ActivityType.FOLLOWUP_CREATED,
+          leadId: data.leadId,
+          followUpId: followUp.id,
+          payload: {
+            scheduledAt: followUp.scheduledAt
+          }
+        },
+        tx
+      )
+
+      return followUp
     })
-
-    if (!lead) {
-      throw new Error('Lead não encontrado')
-    }
-
-    const followUp = await prisma.followUp.create({
-      data: {
-        workspaceId: data.workspaceId,
-        leadId: data.leadId,
-        scheduledAt: data.scheduledAt
-      }
-    })
-
-    await this.activities.create({
-      workspaceId: data.workspaceId,
-      type: ActivityType.FOLLOWUP_CREATED,
-      leadId: data.leadId,
-      followUpId: followUp.id,
-      payload: {
-        scheduledAt: followUp.scheduledAt
-      }
-    })
-
-    return followUp
   }
 
   async listToday(workspaceId: string) {
@@ -87,35 +92,39 @@ export class FollowUpsService {
   }
 
   async markAsDone(params: { workspaceId: string; followUpId: string }) {
+    return prisma.$transaction(async (tx) => {
+      const followUp = await tx.followUp.findFirst({
+        where: {
+          id: params.followUpId,
+          workspaceId: params.workspaceId
+        }
+      })
 
-    const followUp = await prisma.followUp.findFirst({
-      where: {
-        id: params.followUpId,
-        workspaceId: params.workspaceId
+      if (!followUp) {
+        throw new Error('Follow-up não encontrado')
       }
+
+      const updated = await tx.followUp.update({
+        where: {
+          id: followUp.id
+        },
+        data: {
+          doneAt: new Date()
+        }
+      })
+
+      await this.activities.create(
+        {
+          workspaceId: params.workspaceId,
+          type: ActivityType.FOLLOWUP_DONE,
+          leadId: updated.leadId,
+          followUpId: updated.id
+        },
+        tx
+      )
+
+      return updated
     })
-
-    if (!followUp) {
-      throw new Error('Follow-up não encontrado')
-    }
-
-    const updated = await prisma.followUp.update({
-      where: {
-        id: followUp.id
-      },
-      data: {
-        doneAt: new Date()
-      }
-    })
-
-    await this.activities.create({
-      workspaceId: params.workspaceId,
-      type: ActivityType.FOLLOWUP_DONE,
-      leadId: updated.leadId,
-      followUpId: updated.id
-    })
-
-    return updated
   }
 
   async listOverdue(workspaceId: string) {
