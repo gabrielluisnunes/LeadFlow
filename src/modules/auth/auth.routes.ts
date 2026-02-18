@@ -16,7 +16,9 @@ export async function authRoutes(app: FastifyInstance) {
     })
 
     return reply.code(201).send({
-      token
+      data: {
+        token
+      }
     })
   })
 
@@ -34,7 +36,9 @@ export async function authRoutes(app: FastifyInstance) {
     })
 
     return reply.send({
-      token
+      data: {
+        token
+      }
     })
   })
 

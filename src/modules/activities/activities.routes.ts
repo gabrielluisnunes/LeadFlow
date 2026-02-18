@@ -12,6 +12,8 @@ export async function activitiesRoutes(app: FastifyInstance) {
 
     const activities = await activitiesService.listByWorkspace(workspaceId)
 
-    return activities
+    return {
+      data: activities
+    }
   })
 }

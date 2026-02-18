@@ -18,7 +18,9 @@ export async function followUpsRoutes(app: FastifyInstance) {
       scheduledAt: new Date(body.scheduledAt)
     })
 
-    return reply.code(201).send(followUp)
+    return reply.code(201).send({
+      data: followUp
+    })
   })
 
   app.get('/lead/:leadId', async (request) => {
@@ -30,7 +32,9 @@ export async function followUpsRoutes(app: FastifyInstance) {
       leadId
     })
 
-    return followUps
+    return {
+      data: followUps
+    }
   })
 
     app.get('/today', async (request) => {
@@ -38,7 +42,9 @@ export async function followUpsRoutes(app: FastifyInstance) {
 
     const followUps = await followUpsService.listToday(workspaceId)
 
-    return followUps
+    return {
+      data: followUps
+    }
   })
 
     app.get('/overdue', async (request) => {
@@ -46,7 +52,9 @@ export async function followUpsRoutes(app: FastifyInstance) {
 
     const followUps = await followUpsService.listOverdue(workspaceId)
 
-    return followUps
+    return {
+      data: followUps
+    }
   })
 
     app.get('/upcoming', async (request) => {
@@ -54,7 +62,9 @@ export async function followUpsRoutes(app: FastifyInstance) {
 
     const followUps = await followUpsService.listUpcoming(workspaceId)
 
-    return followUps
+    return {
+      data: followUps
+    }
   })
 
   app.patch('/:followUpId/done', async (request) => {
@@ -66,6 +76,8 @@ export async function followUpsRoutes(app: FastifyInstance) {
       followUpId
     })
 
-    return followUp
+    return {
+      data: followUp
+    }
   })
 }

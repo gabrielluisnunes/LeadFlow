@@ -16,14 +16,18 @@ export async function leadsRoutes(app: FastifyInstance) {
             ...body
         });
 
-        return replyy.code(201).send(lead);
+        return replyy.code(201).send({
+            data: lead
+        });
     }) 
 
         app.get('/', async(request) => {
             const workspaceId = request.user.workspaceId;
             const leads = await leadsService.listByWorkspaceId(workspaceId);
     
-            return leads;   
+            return {
+                data: leads
+            };   
             
         });
 
@@ -40,7 +44,9 @@ export async function leadsRoutes(app: FastifyInstance) {
                 status: body.status
         })
 
-        return lead
+        return {
+            data: lead
+        }
     })
 
     }

@@ -12,6 +12,8 @@ export async function metricsRoutes(app: FastifyInstance) {
 
     const data = await metricsService.getLeadsOverview(workspaceId)
 
-    return data
+    return {
+      data
+    }
   })
 }
