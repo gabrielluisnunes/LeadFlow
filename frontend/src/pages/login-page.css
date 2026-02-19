@@ -48,10 +48,16 @@
 }
 
 .login-hero h1 {
-  margin: 0 0 1.1rem;
+  margin: 0;
   color: #2a3355;
   font-size: 3.4rem;
   line-height: 1.1;
+}
+
+.login-subtitle {
+  margin: 0.45rem 0 1.1rem;
+  color: #6e7590;
+  font-size: 1rem;
 }
 
 .login-card {
@@ -63,10 +69,7 @@
   padding: 1.5rem;
   display: grid;
   gap: 0.85rem;
-}
-
-.auth-card-large {
-  max-width: 460px;
+  box-shadow: 0 8px 24px rgba(20, 34, 80, 0.06);
 }
 
 .login-card label {

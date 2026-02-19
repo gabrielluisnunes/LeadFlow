@@ -59,8 +59,9 @@ export function RegisterPage() {
       <section className="login-hero">
         <span className="hero-drop" aria-hidden="true" />
         <h1>Criar conta</h1>
+        <p className="login-subtitle">Cadastre-se para começar a usar o LeadFlow.</p>
 
-        <form className="login-card auth-card-large" onSubmit={handleSubmit}>
+        <form className="login-card" onSubmit={handleSubmit}>
           <label>
             Nome
             <input

@@ -56,6 +56,7 @@ export function LoginPage() {
       <section className="login-hero">
         <span className="hero-drop" aria-hidden="true" />
         <h1>Login</h1>
+        <p className="login-subtitle">Entre para continuar no seu workspace.</p>
 
         <form className="login-card" onSubmit={handleSubmit}>
           <label>
