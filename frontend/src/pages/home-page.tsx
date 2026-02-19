@@ -22,19 +22,17 @@ import {
   type LeadStatus
 } from '../modules/leads/api'
 import {
-  createFollowUp,
   listOverdueFollowUps,
   listTodayFollowUps,
   listUpcomingFollowUps,
-  markFollowUpAsDone,
   type FollowUpWithLead
 } from '../modules/followups/api'
 import { listActivities, type Activity } from '../modules/activities/api'
 import { getLeadsOverviewMetrics, type LeadsOverviewMetrics } from '../modules/metrics/api'
 import { MetricsSection } from './home/components/metrics-section'
 import { LeadsSection } from './home/components/leads-section'
-import { FollowUpsSection } from './home/components/followups-section'
 import { ActivitiesSection } from './home/components/activities-section'
+import { DashboardSection } from './home/components/dashboard-section'
 
 type HomeView = 'inicio' | 'leads' | 'dashboard' | 'atividades' | 'metricas' | 'perfil'
 
@@ -43,11 +41,6 @@ interface LeadFormData {
   phone: string
   email: string
   source: string
-}
-
-interface FollowUpFormData {
-  leadId: string
-  scheduledAt: string
 }
 
 export function HomePage() {
@@ -67,11 +60,7 @@ export function HomePage() {
   const [todayFollowUps, setTodayFollowUps] = useState<FollowUpWithLead[]>([])
   const [overdueFollowUps, setOverdueFollowUps] = useState<FollowUpWithLead[]>([])
   const [upcomingFollowUps, setUpcomingFollowUps] = useState<FollowUpWithLead[]>([])
-  const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(true)
   const [followUpErrorMessage, setFollowUpErrorMessage] = useState('')
-  const [isCreatingFollowUp, setIsCreatingFollowUp] = useState(false)
-  const [isMarkingDoneId, setIsMarkingDoneId] = useState<string | null>(null)
-  const [createFollowUpErrorMessage, setCreateFollowUpErrorMessage] = useState('')
 
   const [metrics, setMetrics] = useState<LeadsOverviewMetrics | null>(null)
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true)
@@ -80,11 +69,6 @@ export function HomePage() {
   const [activities, setActivities] = useState<Activity[]>([])
   const [isLoadingActivities, setIsLoadingActivities] = useState(true)
   const [activitiesErrorMessage, setActivitiesErrorMessage] = useState('')
-
-  const [followUpFormData, setFollowUpFormData] = useState<FollowUpFormData>({
-    leadId: '',
-    scheduledAt: ''
-  })
 
   const [formData, setFormData] = useState<LeadFormData>({
     name: '',
@@ -121,7 +105,6 @@ export function HomePage() {
 
   async function loadFollowUpsAgenda() {
     setFollowUpErrorMessage('')
-    setIsLoadingFollowUps(true)
 
     try {
       const [today, overdue, upcoming] = await Promise.all([
@@ -139,8 +122,6 @@ export function HomePage() {
         'Não foi possível carregar a agenda de follow-ups',
         setFollowUpErrorMessage
       )
-    } finally {
-      setIsLoadingFollowUps(false)
     }
   }
 
@@ -232,17 +213,13 @@ export function HomePage() {
     setFormData((current) => ({ ...current, [field]: value }))
   }
 
-  function handleFollowUpFieldChange(field: keyof FollowUpFormData, value: string) {
-    setFollowUpFormData((current) => ({ ...current, [field]: value }))
-  }
-
   async function handleCreateLead(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setCreateErrorMessage('')
     setIsCreating(true)
 
     try {
-      const createdLead = await createLead({
+      await createLead({
         name: formData.name,
         phone: formData.phone,
         email: formData.email || undefined,
@@ -258,13 +235,6 @@ export function HomePage() {
 
       await loadLeads()
       await loadMetrics()
-
-      if (!followUpFormData.leadId) {
-        setFollowUpFormData((current) => ({
-          ...current,
-          leadId: createdLead.id
-        }))
-      }
     } catch (error) {
       handleApiError(error, 'Não foi possível criar o lead', setCreateErrorMessage)
     } finally {
@@ -288,50 +258,6 @@ export function HomePage() {
       handleApiError(error, 'Não foi possível atualizar o status do lead', setStatusErrorMessage)
     } finally {
       setIsUpdatingStatusId(null)
-    }
-  }
-
-  async function handleCreateFollowUp(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setCreateFollowUpErrorMessage('')
-    setIsCreatingFollowUp(true)
-
-    try {
-      await createFollowUp({
-        leadId: followUpFormData.leadId,
-        scheduledAt: new Date(followUpFormData.scheduledAt).toISOString()
-      })
-
-      setFollowUpFormData((current) => ({
-        ...current,
-        scheduledAt: ''
-      }))
-
-      await loadFollowUpsAgenda()
-      await loadActivities()
-    } catch (error) {
-      handleApiError(error, 'Não foi possível criar o follow-up', setCreateFollowUpErrorMessage)
-    } finally {
-      setIsCreatingFollowUp(false)
-    }
-  }
-
-  async function handleMarkFollowUpAsDone(followUpId: string) {
-    setCreateFollowUpErrorMessage('')
-    setIsMarkingDoneId(followUpId)
-
-    try {
-      await markFollowUpAsDone(followUpId)
-      await loadFollowUpsAgenda()
-      await loadActivities()
-    } catch (error) {
-      handleApiError(
-        error,
-        'Não foi possível concluir o follow-up',
-        setCreateFollowUpErrorMessage
-      )
-    } finally {
-      setIsMarkingDoneId(null)
     }
   }
 
@@ -366,6 +292,7 @@ export function HomePage() {
 
           <section className="recent-section">
             <h2>Dados recentes</h2>
+            {followUpErrorMessage ? <p className="form-error">{followUpErrorMessage}</p> : null}
             <div className="recent-grid">
               <article className="recent-card">
                 <h3>Hoje</h3>
@@ -425,32 +352,13 @@ export function HomePage() {
 
     if (activeView === 'dashboard') {
       return (
-        <>
-          <MetricsSection
-            isLoading={isLoadingMetrics}
-            errorMessage={metricsErrorMessage}
-            metrics={metrics}
-            onRefresh={loadMetrics}
-          />
-
-          <FollowUpsSection
-            formData={followUpFormData}
-            leads={leads}
-            isCreatingFollowUp={isCreatingFollowUp}
-            createFollowUpErrorMessage={createFollowUpErrorMessage}
-            onCreateFollowUp={handleCreateFollowUp}
-            onFollowUpFieldChange={handleFollowUpFieldChange}
-            isLoadingFollowUps={isLoadingFollowUps}
-            followUpErrorMessage={followUpErrorMessage}
-            todayFollowUps={todayFollowUps}
-            overdueFollowUps={overdueFollowUps}
-            upcomingFollowUps={upcomingFollowUps}
-            isMarkingDoneId={isMarkingDoneId}
-            onMarkFollowUpAsDone={handleMarkFollowUpAsDone}
-            onRefreshAgenda={loadFollowUpsAgenda}
-            formatDateTime={formatDateTime}
-          />
-        </>
+        <DashboardSection
+          leads={leads}
+          metrics={metrics}
+          isLoading={isLoadingMetrics}
+          errorMessage={metricsErrorMessage}
+          onRefresh={loadMetrics}
+        />
       )
     }
 
