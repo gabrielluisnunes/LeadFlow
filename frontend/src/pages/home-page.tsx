@@ -21,12 +21,27 @@ import {
 } from '../modules/followups/api'
 import { listActivities, type Activity } from '../modules/activities/api'
 import { getLeadsOverviewMetrics, type LeadsOverviewMetrics } from '../modules/metrics/api'
+import { MetricsSection } from './home/components/metrics-section'
+import { LeadsSection } from './home/components/leads-section'
+import { FollowUpsSection } from './home/components/followups-section'
+import { ActivitiesSection } from './home/components/activities-section'
 
-const leadStatusOptions: LeadStatus[] = ['NEW', 'CONTACTED', 'WON', 'LOST']
+interface LeadFormData {
+  name: string
+  phone: string
+  email: string
+  source: string
+}
+
+interface FollowUpFormData {
+  leadId: string
+  scheduledAt: string
+}
 
 export function HomePage() {
   const navigate = useNavigate()
   const { handleApiError } = useApiErrorHandler()
+
   const [leads, setLeads] = useState<Lead[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
@@ -34,6 +49,7 @@ export function HomePage() {
   const [createErrorMessage, setCreateErrorMessage] = useState('')
   const [isUpdatingStatusId, setIsUpdatingStatusId] = useState<string | null>(null)
   const [statusErrorMessage, setStatusErrorMessage] = useState('')
+
   const [todayFollowUps, setTodayFollowUps] = useState<FollowUpWithLead[]>([])
   const [overdueFollowUps, setOverdueFollowUps] = useState<FollowUpWithLead[]>([])
   const [upcomingFollowUps, setUpcomingFollowUps] = useState<FollowUpWithLead[]>([])
@@ -42,17 +58,21 @@ export function HomePage() {
   const [isCreatingFollowUp, setIsCreatingFollowUp] = useState(false)
   const [isMarkingDoneId, setIsMarkingDoneId] = useState<string | null>(null)
   const [createFollowUpErrorMessage, setCreateFollowUpErrorMessage] = useState('')
+
   const [metrics, setMetrics] = useState<LeadsOverviewMetrics | null>(null)
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true)
   const [metricsErrorMessage, setMetricsErrorMessage] = useState('')
+
   const [activities, setActivities] = useState<Activity[]>([])
   const [isLoadingActivities, setIsLoadingActivities] = useState(true)
   const [activitiesErrorMessage, setActivitiesErrorMessage] = useState('')
-  const [followUpFormData, setFollowUpFormData] = useState({
+
+  const [followUpFormData, setFollowUpFormData] = useState<FollowUpFormData>({
     leadId: '',
     scheduledAt: ''
   })
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<LeadFormData>({
     name: '',
     phone: '',
     email: '',
@@ -72,10 +92,6 @@ export function HomePage() {
       setIsLoading(false)
     }
   }
-
-  useEffect(() => {
-    loadLeads()
-  }, [])
 
   async function loadFollowUpsAgenda() {
     setFollowUpErrorMessage('')
@@ -102,10 +118,6 @@ export function HomePage() {
     }
   }
 
-  useEffect(() => {
-    loadFollowUpsAgenda()
-  }, [])
-
   async function loadActivities() {
     setActivitiesErrorMessage('')
     setIsLoadingActivities(true)
@@ -124,10 +136,6 @@ export function HomePage() {
     }
   }
 
-  useEffect(() => {
-    loadActivities()
-  }, [])
-
   async function loadMetrics() {
     setMetricsErrorMessage('')
     setIsLoadingMetrics(true)
@@ -143,12 +151,23 @@ export function HomePage() {
   }
 
   useEffect(() => {
+    loadLeads()
+    loadFollowUpsAgenda()
+    loadActivities()
     loadMetrics()
   }, [])
 
   function handleSignOut() {
     signOut()
     navigate('/login', { replace: true })
+  }
+
+  function handleLeadFieldChange(field: keyof LeadFormData, value: string) {
+    setFormData((current) => ({ ...current, [field]: value }))
+  }
+
+  function handleFollowUpFieldChange(field: keyof FollowUpFormData, value: string) {
+    setFollowUpFormData((current) => ({ ...current, [field]: value }))
   }
 
   async function handleCreateLead(event: FormEvent<HTMLFormElement>) {
@@ -187,6 +206,25 @@ export function HomePage() {
     }
   }
 
+  async function handleUpdateStatus(leadId: string, status: LeadStatus) {
+    setStatusErrorMessage('')
+    setIsUpdatingStatusId(leadId)
+
+    try {
+      const updatedLead = await updateLeadStatus(leadId, status)
+
+      setLeads((current) =>
+        current.map((lead) => (lead.id === updatedLead.id ? updatedLead : lead))
+      )
+
+      await loadMetrics()
+    } catch (error) {
+      handleApiError(error, 'Não foi possível atualizar o status do lead', setStatusErrorMessage)
+    } finally {
+      setIsUpdatingStatusId(null)
+    }
+  }
+
   async function handleCreateFollowUp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setCreateFollowUpErrorMessage('')
@@ -221,7 +259,11 @@ export function HomePage() {
       await loadFollowUpsAgenda()
       await loadActivities()
     } catch (error) {
-      handleApiError(error, 'Não foi possível concluir o follow-up', setCreateFollowUpErrorMessage)
+      handleApiError(
+        error,
+        'Não foi possível concluir o follow-up',
+        setCreateFollowUpErrorMessage
+      )
     } finally {
       setIsMarkingDoneId(null)
     }
@@ -229,40 +271,6 @@ export function HomePage() {
 
   function formatDateTime(value: string) {
     return new Date(value).toLocaleString('pt-BR')
-  }
-
-  function getActivityLabel(activity: Activity) {
-    switch (activity.type) {
-      case 'LEAD_CREATED':
-        return 'Lead criado'
-      case 'LEAD_STATUS_UPDATED':
-        return 'Status do lead atualizado'
-      case 'FOLLOWUP_CREATED':
-        return 'Follow-up criado'
-      case 'FOLLOWUP_DONE':
-        return 'Follow-up concluído'
-      default:
-        return activity.type
-    }
-  }
-
-  async function handleUpdateStatus(leadId: string, status: LeadStatus) {
-    setStatusErrorMessage('')
-    setIsUpdatingStatusId(leadId)
-
-    try {
-      const updatedLead = await updateLeadStatus(leadId, status)
-
-      setLeads((current) =>
-        current.map((lead) => (lead.id === updatedLead.id ? updatedLead : lead))
-      )
-
-      await loadMetrics()
-    } catch (error) {
-      handleApiError(error, 'Não foi possível atualizar o status do lead', setStatusErrorMessage)
-    } finally {
-      setIsUpdatingStatusId(null)
-    }
   }
 
   return (
@@ -276,318 +284,53 @@ export function HomePage() {
         <li>Contrato: respostas em {`{ data: ... }`} e erros em {`{ error: ... }`}</li>
       </ul>
 
-      <section className="list-section">
-        <h2>Métricas</h2>
+      <MetricsSection
+        isLoading={isLoadingMetrics}
+        errorMessage={metricsErrorMessage}
+        metrics={metrics}
+        onRefresh={loadMetrics}
+      />
 
-        {isLoadingMetrics ? <p>Carregando métricas...</p> : null}
-        {!isLoadingMetrics && metricsErrorMessage ? (
-          <p className="form-error">{metricsErrorMessage}</p>
-        ) : null}
+      <LeadsSection
+        formData={formData}
+        isCreating={isCreating}
+        createErrorMessage={createErrorMessage}
+        onCreateLead={handleCreateLead}
+        onLeadFieldChange={handleLeadFieldChange}
+        leads={leads}
+        isLoading={isLoading}
+        errorMessage={errorMessage}
+        statusErrorMessage={statusErrorMessage}
+        isUpdatingStatusId={isUpdatingStatusId}
+        onUpdateStatus={handleUpdateStatus}
+        onRefreshLeads={loadLeads}
+      />
 
-        {!isLoadingMetrics && !metricsErrorMessage && metrics ? (
-          <div className="metrics-grid">
-            <div className="metric-card">
-              <span>Total de leads</span>
-              <strong>{metrics.totalLeads}</strong>
-            </div>
-            <div className="metric-card">
-              <span>Taxa de conversão</span>
-              <strong>{metrics.conversaionRate}%</strong>
-            </div>
-            <div className="metric-card">
-              <span>NEW</span>
-              <strong>{metrics.byStatus.NEW}</strong>
-            </div>
-            <div className="metric-card">
-              <span>CONTACTED</span>
-              <strong>{metrics.byStatus.CONTACTED}</strong>
-            </div>
-            <div className="metric-card">
-              <span>WON</span>
-              <strong>{metrics.byStatus.WON}</strong>
-            </div>
-            <div className="metric-card">
-              <span>LOST</span>
-              <strong>{metrics.byStatus.LOST}</strong>
-            </div>
-          </div>
-        ) : null}
+      <FollowUpsSection
+        formData={followUpFormData}
+        leads={leads}
+        isCreatingFollowUp={isCreatingFollowUp}
+        createFollowUpErrorMessage={createFollowUpErrorMessage}
+        onCreateFollowUp={handleCreateFollowUp}
+        onFollowUpFieldChange={handleFollowUpFieldChange}
+        isLoadingFollowUps={isLoadingFollowUps}
+        followUpErrorMessage={followUpErrorMessage}
+        todayFollowUps={todayFollowUps}
+        overdueFollowUps={overdueFollowUps}
+        upcomingFollowUps={upcomingFollowUps}
+        isMarkingDoneId={isMarkingDoneId}
+        onMarkFollowUpAsDone={handleMarkFollowUpAsDone}
+        onRefreshAgenda={loadFollowUpsAgenda}
+        formatDateTime={formatDateTime}
+      />
 
-        <button type="button" onClick={loadMetrics} disabled={isLoadingMetrics}>
-          Atualizar métricas
-        </button>
-      </section>
-
-      <section className="list-section">
-        <h2>Novo lead</h2>
-
-        <form className="auth-form" onSubmit={handleCreateLead}>
-          <label>
-            Nome
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(event) =>
-                setFormData((current) => ({ ...current, name: event.target.value }))
-              }
-              minLength={3}
-              required
-            />
-          </label>
-
-          <label>
-            Telefone
-            <input
-              type="text"
-              value={formData.phone}
-              onChange={(event) =>
-                setFormData((current) => ({ ...current, phone: event.target.value }))
-              }
-              minLength={10}
-              maxLength={11}
-              required
-            />
-          </label>
-
-          <label>
-            Email (opcional)
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(event) =>
-                setFormData((current) => ({ ...current, email: event.target.value }))
-              }
-            />
-          </label>
-
-          <label>
-            Origem (opcional)
-            <input
-              type="text"
-              value={formData.source}
-              onChange={(event) =>
-                setFormData((current) => ({ ...current, source: event.target.value }))
-              }
-            />
-          </label>
-
-          {createErrorMessage ? <p className="form-error">{createErrorMessage}</p> : null}
-
-          <button type="submit" disabled={isCreating}>
-            {isCreating ? 'Salvando...' : 'Criar lead'}
-          </button>
-        </form>
-      </section>
-
-      <section className="list-section">
-        <h2>Leads</h2>
-
-        {isLoading ? <p>Carregando leads...</p> : null}
-
-        {!isLoading && errorMessage ? <p className="form-error">{errorMessage}</p> : null}
-        {!isLoading && !errorMessage && statusErrorMessage ? (
-          <p className="form-error">{statusErrorMessage}</p>
-        ) : null}
-
-        {!isLoading && !errorMessage ? (
-          leads.length > 0 ? (
-            <ul className="lead-list">
-              {leads.map((lead) => (
-                <li key={lead.id} className="lead-item">
-                  <div>
-                    <strong>{lead.name}</strong> — {lead.phone}
-                  </div>
-
-                  <label className="status-field">
-                    Status
-                    <select
-                      value={lead.status}
-                      onChange={(event) =>
-                        handleUpdateStatus(lead.id, event.target.value as LeadStatus)
-                      }
-                      disabled={isUpdatingStatusId === lead.id}
-                    >
-                      {leadStatusOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Nenhum lead cadastrado.</p>
-          )
-        ) : null}
-
-        <button type="button" onClick={loadLeads} disabled={isLoading}>
-          Atualizar leads
-        </button>
-      </section>
-
-      <section className="list-section">
-        <h2>Novo follow-up</h2>
-
-        <form className="auth-form" onSubmit={handleCreateFollowUp}>
-          <label>
-            Lead
-            <select
-              value={followUpFormData.leadId}
-              onChange={(event) =>
-                setFollowUpFormData((current) => ({ ...current, leadId: event.target.value }))
-              }
-              required
-            >
-              <option value="">Selecione um lead</option>
-              {leads.map((lead) => (
-                <option key={lead.id} value={lead.id}>
-                  {lead.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Data e hora
-            <input
-              type="datetime-local"
-              value={followUpFormData.scheduledAt}
-              onChange={(event) =>
-                setFollowUpFormData((current) => ({
-                  ...current,
-                  scheduledAt: event.target.value
-                }))
-              }
-              required
-            />
-          </label>
-
-          {createFollowUpErrorMessage ? (
-            <p className="form-error">{createFollowUpErrorMessage}</p>
-          ) : null}
-
-          <button type="submit" disabled={isCreatingFollowUp || leads.length === 0}>
-            {isCreatingFollowUp ? 'Salvando...' : 'Criar follow-up'}
-          </button>
-        </form>
-      </section>
-
-      <section className="list-section">
-        <h2>Agenda de follow-ups</h2>
-
-        {isLoadingFollowUps ? <p>Carregando agenda...</p> : null}
-        {!isLoadingFollowUps && followUpErrorMessage ? (
-          <p className="form-error">{followUpErrorMessage}</p>
-        ) : null}
-
-        {!isLoadingFollowUps && !followUpErrorMessage ? (
-          <>
-            <h3>Hoje</h3>
-            {todayFollowUps.length > 0 ? (
-              <ul className="followup-list">
-                {todayFollowUps.map((followUp) => (
-                  <li key={followUp.id} className="followup-item">
-                    <div>
-                      <strong>{followUp.lead.name}</strong> — {formatDateTime(followUp.scheduledAt)}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleMarkFollowUpAsDone(followUp.id)}
-                      disabled={isMarkingDoneId === followUp.id}
-                    >
-                      {isMarkingDoneId === followUp.id ? 'Concluindo...' : 'Concluir'}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Nenhum follow-up para hoje.</p>
-            )}
-
-            <h3>Atrasados</h3>
-            {overdueFollowUps.length > 0 ? (
-              <ul className="followup-list">
-                {overdueFollowUps.map((followUp) => (
-                  <li key={followUp.id} className="followup-item">
-                    <div>
-                      <strong>{followUp.lead.name}</strong> — {formatDateTime(followUp.scheduledAt)}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleMarkFollowUpAsDone(followUp.id)}
-                      disabled={isMarkingDoneId === followUp.id}
-                    >
-                      {isMarkingDoneId === followUp.id ? 'Concluindo...' : 'Concluir'}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Nenhum follow-up atrasado.</p>
-            )}
-
-            <h3>Próximos (7 dias)</h3>
-            {upcomingFollowUps.length > 0 ? (
-              <ul className="followup-list">
-                {upcomingFollowUps.map((followUp) => (
-                  <li key={followUp.id} className="followup-item">
-                    <div>
-                      <strong>{followUp.lead.name}</strong> — {formatDateTime(followUp.scheduledAt)}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleMarkFollowUpAsDone(followUp.id)}
-                      disabled={isMarkingDoneId === followUp.id}
-                    >
-                      {isMarkingDoneId === followUp.id ? 'Concluindo...' : 'Concluir'}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Nenhum follow-up próximo.</p>
-            )}
-
-            <button type="button" onClick={loadFollowUpsAgenda} disabled={isLoadingFollowUps}>
-              Atualizar agenda
-            </button>
-          </>
-        ) : null}
-      </section>
-
-      <section className="list-section">
-        <h2>Atividades</h2>
-
-        {isLoadingActivities ? <p>Carregando atividades...</p> : null}
-        {!isLoadingActivities && activitiesErrorMessage ? (
-          <p className="form-error">{activitiesErrorMessage}</p>
-        ) : null}
-
-        {!isLoadingActivities && !activitiesErrorMessage ? (
-          activities.length > 0 ? (
-            <ul className="activity-list">
-              {activities.map((activity) => (
-                <li key={activity.id} className="activity-item">
-                  <strong>{getActivityLabel(activity)}</strong>
-                  <div className="activity-meta">
-                    <span>{formatDateTime(activity.createdAt)}</span>
-                    {activity.leadId ? <span>Lead: {activity.leadId}</span> : null}
-                    {activity.followUpId ? <span>Follow-up: {activity.followUpId}</span> : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Nenhuma atividade registrada.</p>
-          )
-        ) : null}
-
-        <button type="button" onClick={loadActivities} disabled={isLoadingActivities}>
-          Atualizar atividades
-        </button>
-      </section>
+      <ActivitiesSection
+        isLoadingActivities={isLoadingActivities}
+        activitiesErrorMessage={activitiesErrorMessage}
+        activities={activities}
+        onRefreshActivities={loadActivities}
+        formatDateTime={formatDateTime}
+      />
 
       <button type="button" onClick={handleSignOut}>
         Sair
