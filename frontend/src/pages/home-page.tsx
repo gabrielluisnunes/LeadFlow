@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { LucideIcon } from 'lucide-react'
+import {
+  BarChart3,
+  ChevronLeft,
+  ClipboardList,
+  Home,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Users
+} from 'lucide-react'
 import { signOut } from '../modules/auth/session'
 import { useApiErrorHandler } from '../hooks/use-api-error-handler'
 import {
@@ -43,6 +54,7 @@ export function HomePage() {
   const navigate = useNavigate()
   const { handleApiError } = useApiErrorHandler()
   const [activeView, setActiveView] = useState<HomeView>('inicio')
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true)
 
   const [leads, setLeads] = useState<Lead[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -85,12 +97,12 @@ export function HomePage() {
   const [profilePhoto, setProfilePhoto] = useState('')
   const [profileFeedback, setProfileFeedback] = useState('')
 
-  const menuItems: Array<{ key: HomeView; label: string }> = [
-    { key: 'inicio', label: 'Inicio' },
-    { key: 'leads', label: 'Leads' },
-    { key: 'dashboard', label: 'Dashboard' },
-    { key: 'atividades', label: 'Atividades' },
-    { key: 'metricas', label: 'Metricas' }
+  const menuItems: Array<{ key: HomeView; label: string; icon: LucideIcon }> = [
+    { key: 'inicio', label: 'Inicio', icon: Home },
+    { key: 'leads', label: 'Leads', icon: Users },
+    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { key: 'atividades', label: 'Atividades', icon: ClipboardList },
+    { key: 'metricas', label: 'Metricas', icon: BarChart3 }
   ]
 
   async function loadLeads() {
@@ -511,9 +523,19 @@ export function HomePage() {
   }
 
   return (
-    <div className="dashboard-layout">
-      <aside className="sidebar">
+    <div className={`dashboard-layout ${isSidebarVisible ? '' : 'sidebar-hidden'}`}>
+      {isSidebarVisible ? (
+        <aside className="sidebar">
         <div>
+          <button
+            type="button"
+            className="sidebar-toggle"
+            onClick={() => setIsSidebarVisible(false)}
+            aria-label="Esconder sidebar"
+          >
+            <ChevronLeft size={18} strokeWidth={2.2} aria-hidden="true" />
+          </button>
+
           <div className="sidebar-brand">
             <span className="sidebar-brand-drop" aria-hidden="true" />
             <span>LeadFlow</span>
@@ -527,7 +549,10 @@ export function HomePage() {
                 className={`sidebar-nav-item ${activeView === item.key ? 'active' : ''}`}
                 onClick={() => setActiveView(item.key)}
               >
-                {item.label}
+                <span className="sidebar-nav-icon" aria-hidden="true">
+                  <item.icon size={18} strokeWidth={2.1} />
+                </span>
+                <span>{item.label}</span>
               </button>
             ))}
           </nav>
@@ -551,13 +576,27 @@ export function HomePage() {
           </button>
 
           <button type="button" className="sidebar-signout" onClick={handleSignOut}>
+            <span className="sidebar-nav-icon" aria-hidden="true">
+              <LogOut size={18} strokeWidth={2.1} />
+            </span>
             Sair
           </button>
         </div>
       </aside>
+      ) : null}
 
       <main className="dashboard-content">
         <header className="dashboard-header">
+          {!isSidebarVisible ? (
+            <button
+              type="button"
+              className="sidebar-toggle-open"
+              onClick={() => setIsSidebarVisible(true)}
+            >
+              <Menu size={17} strokeWidth={2.2} aria-hidden="true" />
+              <span>Mostrar menu</span>
+            </button>
+          ) : null}
           <h1>{pageTitleMap[activeView]}</h1>
         </header>
 
