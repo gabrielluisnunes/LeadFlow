@@ -12,6 +12,20 @@ export interface Lead {
   createdAt: string
 }
 
+export interface CreateLeadInput {
+  name: string
+  phone: string
+  email?: string
+  source?: string
+}
+
 export function listLeads() {
   return request<Lead[]>('/leads')
+}
+
+export function createLead(input: CreateLeadInput) {
+  return request<Lead>('/leads', {
+    method: 'POST',
+    body: JSON.stringify(input)
+  })
 }
