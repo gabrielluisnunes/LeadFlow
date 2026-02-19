@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link } from 'react-router-dom'
-import { Navigate, useNavigate } from 'react-router-dom'
-import { login } from '../modules/auth/api'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { register } from '../modules/auth/api'
 import { isAuthenticated } from '../modules/auth/session'
 import { setToken } from '../lib/token-storage'
 import { ApiError } from '../types/api'
 import './login-page.css'
 
-export function LoginPage() {
+export function RegisterPage() {
   const navigate = useNavigate()
 
+  const [name, setName] = useState('')
+  const [workspaceName, setWorkspaceName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -26,7 +27,9 @@ export function LoginPage() {
     setIsSubmitting(true)
 
     try {
-      const result = await login({
+      const result = await register({
+        name,
+        workspaceName,
         email,
         password
       })
@@ -37,7 +40,7 @@ export function LoginPage() {
       if (error instanceof ApiError) {
         setErrorMessage(error.message)
       } else {
-        setErrorMessage('Não foi possível fazer login agora')
+        setErrorMessage('Não foi possível criar a conta agora')
       }
     } finally {
       setIsSubmitting(false)
@@ -55,9 +58,33 @@ export function LoginPage() {
 
       <section className="login-hero">
         <span className="hero-drop" aria-hidden="true" />
-        <h1>Login</h1>
+        <h1>Criar conta</h1>
 
-        <form className="login-card" onSubmit={handleSubmit}>
+        <form className="login-card auth-card-large" onSubmit={handleSubmit}>
+          <label>
+            Nome
+            <input
+              type="text"
+              placeholder="Seu nome"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              minLength={2}
+              required
+            />
+          </label>
+
+          <label>
+            Nome do workspace
+            <input
+              type="text"
+              placeholder="Minha empresa"
+              value={workspaceName}
+              onChange={(event) => setWorkspaceName(event.target.value)}
+              minLength={2}
+              required
+            />
+          </label>
+
           <label>
             E-mail
             <input
@@ -76,6 +103,7 @@ export function LoginPage() {
               placeholder="Senha"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              minLength={6}
               required
             />
           </label>
@@ -83,11 +111,11 @@ export function LoginPage() {
           {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
 
           <button type="submit" className="login-submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Entrando...' : 'Entrar'}
+            {isSubmitting ? 'Criando...' : 'Criar conta'}
           </button>
 
           <p className="login-footer-text">
-            Ainda não possui uma conta? <Link to="/register">criar conta</Link>
+            Já possui uma conta? <Link to="/login">entrar</Link>
           </p>
         </form>
       </section>
