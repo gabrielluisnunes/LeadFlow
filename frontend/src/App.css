@@ -36,6 +36,11 @@
   padding: 0.5rem;
 }
 
+.auth-form select {
+  width: 100%;
+  padding: 0.5rem;
+}
+
 .auth-form button,
 .app-shell button {
   width: fit-content;
@@ -76,4 +81,17 @@
 
 .status-field select {
   padding: 0.25rem 0.5rem;
+}
+
+.followup-list {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.followup-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
 }

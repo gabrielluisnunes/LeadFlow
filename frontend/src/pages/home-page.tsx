@@ -10,6 +10,14 @@ import {
   type Lead,
   type LeadStatus
 } from '../modules/leads/api'
+import {
+  createFollowUp,
+  listOverdueFollowUps,
+  listTodayFollowUps,
+  listUpcomingFollowUps,
+  markFollowUpAsDone,
+  type FollowUpWithLead
+} from '../modules/followups/api'
 import { ApiError } from '../types/api'
 
 const leadStatusOptions: LeadStatus[] = ['NEW', 'CONTACTED', 'WON', 'LOST']
@@ -23,6 +31,18 @@ export function HomePage() {
   const [createErrorMessage, setCreateErrorMessage] = useState('')
   const [isUpdatingStatusId, setIsUpdatingStatusId] = useState<string | null>(null)
   const [statusErrorMessage, setStatusErrorMessage] = useState('')
+  const [todayFollowUps, setTodayFollowUps] = useState<FollowUpWithLead[]>([])
+  const [overdueFollowUps, setOverdueFollowUps] = useState<FollowUpWithLead[]>([])
+  const [upcomingFollowUps, setUpcomingFollowUps] = useState<FollowUpWithLead[]>([])
+  const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(true)
+  const [followUpErrorMessage, setFollowUpErrorMessage] = useState('')
+  const [isCreatingFollowUp, setIsCreatingFollowUp] = useState(false)
+  const [isMarkingDoneId, setIsMarkingDoneId] = useState<string | null>(null)
+  const [createFollowUpErrorMessage, setCreateFollowUpErrorMessage] = useState('')
+  const [followUpFormData, setFollowUpFormData] = useState({
+    leadId: '',
+    scheduledAt: ''
+  })
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -58,6 +78,41 @@ export function HomePage() {
     loadLeads()
   }, [])
 
+  async function loadFollowUpsAgenda() {
+    setFollowUpErrorMessage('')
+    setIsLoadingFollowUps(true)
+
+    try {
+      const [today, overdue, upcoming] = await Promise.all([
+        listTodayFollowUps(),
+        listOverdueFollowUps(),
+        listUpcomingFollowUps()
+      ])
+
+      setTodayFollowUps(today)
+      setOverdueFollowUps(overdue)
+      setUpcomingFollowUps(upcoming)
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        signOut()
+        navigate('/login', { replace: true })
+        return
+      }
+
+      if (error instanceof ApiError) {
+        setFollowUpErrorMessage(error.message)
+      } else {
+        setFollowUpErrorMessage('Não foi possível carregar a agenda de follow-ups')
+      }
+    } finally {
+      setIsLoadingFollowUps(false)
+    }
+  }
+
+  useEffect(() => {
+    loadFollowUpsAgenda()
+  }, [])
+
   function handleSignOut() {
     signOut()
     navigate('/login', { replace: true })
@@ -69,7 +124,7 @@ export function HomePage() {
     setIsCreating(true)
 
     try {
-      await createLead({
+      const createdLead = await createLead({
         name: formData.name,
         phone: formData.phone,
         email: formData.email || undefined,
@@ -84,6 +139,13 @@ export function HomePage() {
       })
 
       await loadLeads()
+
+      if (!followUpFormData.leadId) {
+        setFollowUpFormData((current) => ({
+          ...current,
+          leadId: createdLead.id
+        }))
+      }
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         signOut()
@@ -99,6 +161,68 @@ export function HomePage() {
     } finally {
       setIsCreating(false)
     }
+  }
+
+  async function handleCreateFollowUp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setCreateFollowUpErrorMessage('')
+    setIsCreatingFollowUp(true)
+
+    try {
+      await createFollowUp({
+        leadId: followUpFormData.leadId,
+        scheduledAt: new Date(followUpFormData.scheduledAt).toISOString()
+      })
+
+      setFollowUpFormData((current) => ({
+        ...current,
+        scheduledAt: ''
+      }))
+
+      await loadFollowUpsAgenda()
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        signOut()
+        navigate('/login', { replace: true })
+        return
+      }
+
+      if (error instanceof ApiError) {
+        setCreateFollowUpErrorMessage(error.message)
+      } else {
+        setCreateFollowUpErrorMessage('Não foi possível criar o follow-up')
+      }
+    } finally {
+      setIsCreatingFollowUp(false)
+    }
+  }
+
+  async function handleMarkFollowUpAsDone(followUpId: string) {
+    setCreateFollowUpErrorMessage('')
+    setIsMarkingDoneId(followUpId)
+
+    try {
+      await markFollowUpAsDone(followUpId)
+      await loadFollowUpsAgenda()
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        signOut()
+        navigate('/login', { replace: true })
+        return
+      }
+
+      if (error instanceof ApiError) {
+        setCreateFollowUpErrorMessage(error.message)
+      } else {
+        setCreateFollowUpErrorMessage('Não foi possível concluir o follow-up')
+      }
+    } finally {
+      setIsMarkingDoneId(null)
+    }
+  }
+
+  function formatDateTime(value: string) {
+    return new Date(value).toLocaleString('pt-BR')
   }
 
   async function handleUpdateStatus(leadId: string, status: LeadStatus) {
@@ -246,6 +370,136 @@ export function HomePage() {
         <button type="button" onClick={loadLeads} disabled={isLoading}>
           Atualizar leads
         </button>
+      </section>
+
+      <section className="list-section">
+        <h2>Novo follow-up</h2>
+
+        <form className="auth-form" onSubmit={handleCreateFollowUp}>
+          <label>
+            Lead
+            <select
+              value={followUpFormData.leadId}
+              onChange={(event) =>
+                setFollowUpFormData((current) => ({ ...current, leadId: event.target.value }))
+              }
+              required
+            >
+              <option value="">Selecione um lead</option>
+              {leads.map((lead) => (
+                <option key={lead.id} value={lead.id}>
+                  {lead.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Data e hora
+            <input
+              type="datetime-local"
+              value={followUpFormData.scheduledAt}
+              onChange={(event) =>
+                setFollowUpFormData((current) => ({
+                  ...current,
+                  scheduledAt: event.target.value
+                }))
+              }
+              required
+            />
+          </label>
+
+          {createFollowUpErrorMessage ? (
+            <p className="form-error">{createFollowUpErrorMessage}</p>
+          ) : null}
+
+          <button type="submit" disabled={isCreatingFollowUp || leads.length === 0}>
+            {isCreatingFollowUp ? 'Salvando...' : 'Criar follow-up'}
+          </button>
+        </form>
+      </section>
+
+      <section className="list-section">
+        <h2>Agenda de follow-ups</h2>
+
+        {isLoadingFollowUps ? <p>Carregando agenda...</p> : null}
+        {!isLoadingFollowUps && followUpErrorMessage ? (
+          <p className="form-error">{followUpErrorMessage}</p>
+        ) : null}
+
+        {!isLoadingFollowUps && !followUpErrorMessage ? (
+          <>
+            <h3>Hoje</h3>
+            {todayFollowUps.length > 0 ? (
+              <ul className="followup-list">
+                {todayFollowUps.map((followUp) => (
+                  <li key={followUp.id} className="followup-item">
+                    <div>
+                      <strong>{followUp.lead.name}</strong> — {formatDateTime(followUp.scheduledAt)}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleMarkFollowUpAsDone(followUp.id)}
+                      disabled={isMarkingDoneId === followUp.id}
+                    >
+                      {isMarkingDoneId === followUp.id ? 'Concluindo...' : 'Concluir'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Nenhum follow-up para hoje.</p>
+            )}
+
+            <h3>Atrasados</h3>
+            {overdueFollowUps.length > 0 ? (
+              <ul className="followup-list">
+                {overdueFollowUps.map((followUp) => (
+                  <li key={followUp.id} className="followup-item">
+                    <div>
+                      <strong>{followUp.lead.name}</strong> — {formatDateTime(followUp.scheduledAt)}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleMarkFollowUpAsDone(followUp.id)}
+                      disabled={isMarkingDoneId === followUp.id}
+                    >
+                      {isMarkingDoneId === followUp.id ? 'Concluindo...' : 'Concluir'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Nenhum follow-up atrasado.</p>
+            )}
+
+            <h3>Próximos (7 dias)</h3>
+            {upcomingFollowUps.length > 0 ? (
+              <ul className="followup-list">
+                {upcomingFollowUps.map((followUp) => (
+                  <li key={followUp.id} className="followup-item">
+                    <div>
+                      <strong>{followUp.lead.name}</strong> — {formatDateTime(followUp.scheduledAt)}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleMarkFollowUpAsDone(followUp.id)}
+                      disabled={isMarkingDoneId === followUp.id}
+                    >
+                      {isMarkingDoneId === followUp.id ? 'Concluindo...' : 'Concluir'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Nenhum follow-up próximo.</p>
+            )}
+
+            <button type="button" onClick={loadFollowUpsAgenda} disabled={isLoadingFollowUps}>
+              Atualizar agenda
+            </button>
+          </>
+        ) : null}
       </section>
 
       <button type="button" onClick={handleSignOut}>
