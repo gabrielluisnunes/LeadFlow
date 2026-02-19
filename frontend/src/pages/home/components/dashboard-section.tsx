@@ -32,21 +32,42 @@ export function DashboardSection({
 }: DashboardSectionProps) {
   const monthlyLeadsData = buildMonthlyLeads(leads)
 
+  const statusSource =
+    metrics?.byStatus ??
+    leads.reduce(
+      (accumulator, lead) => {
+        accumulator[lead.status] += 1
+        return accumulator
+      },
+      {
+        NEW: 0,
+        CONTACTED: 0,
+        WON: 0,
+        LOST: 0
+      }
+    )
+
+  const totalLeads = metrics?.totalLeads ?? leads.length
+  const conversionRate =
+    metrics?.conversaionRate ??
+    (totalLeads > 0 ? Number(((statusSource.WON / totalLeads) * 100).toFixed(1)) : 0)
+
   const statusPieData = [
-    { name: 'Novos', value: metrics?.byStatus.NEW ?? 0 },
-    { name: 'Em contato', value: metrics?.byStatus.CONTACTED ?? 0 },
-    { name: 'Convertidos', value: metrics?.byStatus.WON ?? 0 },
-    { name: 'Perdidos', value: metrics?.byStatus.LOST ?? 0 }
+    { name: 'Novos', value: statusSource.NEW },
+    { name: 'Em contato', value: statusSource.CONTACTED },
+    { name: 'Convertidos', value: statusSource.WON },
+    { name: 'Perdidos', value: statusSource.LOST }
   ]
 
   const hasPieData = statusPieData.some((item) => item.value > 0)
+  const pieFallbackData = hasPieData ? statusPieData : [{ name: 'Sem dados', value: 1 }]
 
   return (
     <section className="dashboard-analytics">
       <div className="dashboard-analytics-header">
         <div>
-          <h2>Visão do funil</h2>
-          <p>Acompanhe evolução mensal e distribuição por status.</p>
+          <h2>📊 Visão do funil</h2>
+          <p>Acompanhe evolução mensal e distribuição por status em tempo real.</p>
         </div>
 
         <button type="button" className="dashboard-analytics-refresh" onClick={onRefresh}>
@@ -57,30 +78,30 @@ export function DashboardSection({
       {isLoading ? <p>Carregando dashboard...</p> : null}
       {!isLoading && errorMessage ? <p className="form-error">{errorMessage}</p> : null}
 
-      {!isLoading && !errorMessage && metrics ? (
+      {!isLoading && !errorMessage ? (
         <>
           <div className="dashboard-analytics-kpis">
             <article className="dashboard-analytics-kpi">
-              <small>Total de leads</small>
-              <strong>{metrics.totalLeads}</strong>
+              <small>🚀 Total de leads</small>
+              <strong>{totalLeads}</strong>
             </article>
             <article className="dashboard-analytics-kpi">
-              <small>Taxa de conversão</small>
-              <strong>{metrics.conversaionRate}%</strong>
+              <small>🎯 Taxa de conversão</small>
+              <strong>{conversionRate}%</strong>
             </article>
             <article className="dashboard-analytics-kpi">
-              <small>Em contato</small>
-              <strong>{metrics.byStatus.CONTACTED}</strong>
+              <small>💬 Em contato</small>
+              <strong>{statusSource.CONTACTED}</strong>
             </article>
             <article className="dashboard-analytics-kpi">
-              <small>Convertidos</small>
-              <strong>{metrics.byStatus.WON}</strong>
+              <small>🏆 Convertidos</small>
+              <strong>{statusSource.WON}</strong>
             </article>
           </div>
 
           <div className="dashboard-analytics-grid">
             <article className="dashboard-chart-card">
-              <h3>Leads por mês</h3>
+              <h3>📈 Leads por mês</h3>
               <div className="dashboard-chart-area">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthlyLeadsData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -95,29 +116,32 @@ export function DashboardSection({
             </article>
 
             <article className="dashboard-chart-card">
-              <h3>Distribuição por status</h3>
+              <h3>🥧 Distribuição por status</h3>
               <div className="dashboard-chart-area">
-                {hasPieData ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={statusPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={58}
-                        outerRadius={86}
-                        paddingAngle={2}
-                      >
-                        {statusPieData.map((entry, index) => (
-                          <Cell key={entry.name} fill={pieColors[index % pieColors.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <p className="dashboard-empty">Sem dados para exibir no gráfico de pizza.</p>
-                )}
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieFallbackData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={58}
+                      outerRadius={86}
+                      paddingAngle={2}
+                    >
+                      {pieFallbackData.map((entry, index) => (
+                        <Cell
+                          key={entry.name}
+                          fill={hasPieData ? pieColors[index % pieColors.length] : '#d7dced'}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                {!hasPieData ? (
+                  <p className="dashboard-empty">Sem dados reais ainda — este gráfico será preenchido.</p>
+                ) : null}
               </div>
 
               <ul className="dashboard-status-legend">
