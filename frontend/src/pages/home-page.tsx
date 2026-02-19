@@ -19,6 +19,7 @@ import {
   type FollowUpWithLead
 } from '../modules/followups/api'
 import { listActivities, type Activity } from '../modules/activities/api'
+import { getLeadsOverviewMetrics, type LeadsOverviewMetrics } from '../modules/metrics/api'
 import { ApiError } from '../types/api'
 
 const leadStatusOptions: LeadStatus[] = ['NEW', 'CONTACTED', 'WON', 'LOST']
@@ -40,6 +41,9 @@ export function HomePage() {
   const [isCreatingFollowUp, setIsCreatingFollowUp] = useState(false)
   const [isMarkingDoneId, setIsMarkingDoneId] = useState<string | null>(null)
   const [createFollowUpErrorMessage, setCreateFollowUpErrorMessage] = useState('')
+  const [metrics, setMetrics] = useState<LeadsOverviewMetrics | null>(null)
+  const [isLoadingMetrics, setIsLoadingMetrics] = useState(true)
+  const [metricsErrorMessage, setMetricsErrorMessage] = useState('')
   const [activities, setActivities] = useState<Activity[]>([])
   const [isLoadingActivities, setIsLoadingActivities] = useState(true)
   const [activitiesErrorMessage, setActivitiesErrorMessage] = useState('')
@@ -145,6 +149,34 @@ export function HomePage() {
     loadActivities()
   }, [])
 
+  async function loadMetrics() {
+    setMetricsErrorMessage('')
+    setIsLoadingMetrics(true)
+
+    try {
+      const data = await getLeadsOverviewMetrics()
+      setMetrics(data)
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        signOut()
+        navigate('/login', { replace: true })
+        return
+      }
+
+      if (error instanceof ApiError) {
+        setMetricsErrorMessage(error.message)
+      } else {
+        setMetricsErrorMessage('Não foi possível carregar as métricas')
+      }
+    } finally {
+      setIsLoadingMetrics(false)
+    }
+  }
+
+  useEffect(() => {
+    loadMetrics()
+  }, [])
+
   function handleSignOut() {
     signOut()
     navigate('/login', { replace: true })
@@ -171,6 +203,7 @@ export function HomePage() {
       })
 
       await loadLeads()
+      await loadMetrics()
 
       if (!followUpFormData.leadId) {
         setFollowUpFormData((current) => ({
@@ -284,6 +317,8 @@ export function HomePage() {
       setLeads((current) =>
         current.map((lead) => (lead.id === updatedLead.id ? updatedLead : lead))
       )
+
+      await loadMetrics()
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         signOut()
@@ -311,6 +346,48 @@ export function HomePage() {
         <li>Backend URL: {env.apiBaseUrl}</li>
         <li>Contrato: respostas em {`{ data: ... }`} e erros em {`{ error: ... }`}</li>
       </ul>
+
+      <section className="list-section">
+        <h2>Métricas</h2>
+
+        {isLoadingMetrics ? <p>Carregando métricas...</p> : null}
+        {!isLoadingMetrics && metricsErrorMessage ? (
+          <p className="form-error">{metricsErrorMessage}</p>
+        ) : null}
+
+        {!isLoadingMetrics && !metricsErrorMessage && metrics ? (
+          <div className="metrics-grid">
+            <div className="metric-card">
+              <span>Total de leads</span>
+              <strong>{metrics.totalLeads}</strong>
+            </div>
+            <div className="metric-card">
+              <span>Taxa de conversão</span>
+              <strong>{metrics.conversaionRate}%</strong>
+            </div>
+            <div className="metric-card">
+              <span>NEW</span>
+              <strong>{metrics.byStatus.NEW}</strong>
+            </div>
+            <div className="metric-card">
+              <span>CONTACTED</span>
+              <strong>{metrics.byStatus.CONTACTED}</strong>
+            </div>
+            <div className="metric-card">
+              <span>WON</span>
+              <strong>{metrics.byStatus.WON}</strong>
+            </div>
+            <div className="metric-card">
+              <span>LOST</span>
+              <strong>{metrics.byStatus.LOST}</strong>
+            </div>
+          </div>
+        ) : null}
+
+        <button type="button" onClick={loadMetrics} disabled={isLoadingMetrics}>
+          Atualizar métricas
+        </button>
+      </section>
 
       <section className="list-section">
         <h2>Novo lead</h2>

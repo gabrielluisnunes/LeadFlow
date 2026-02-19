@@ -60,6 +60,21 @@
   margin: 0 0 0.75rem;
 }
 
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.metric-card {
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
 .lead-list {
   margin: 0 0 1rem;
   padding-left: 1.25rem;
