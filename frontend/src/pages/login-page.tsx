@@ -5,6 +5,7 @@ import { login } from '../modules/auth/api'
 import { isAuthenticated } from '../modules/auth/session'
 import { setToken } from '../lib/token-storage'
 import { ApiError } from '../types/api'
+import './login-page.css'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -43,36 +44,57 @@ export function LoginPage() {
   }
 
   return (
-    <main className="app-shell auth-shell">
-      <h1>Entrar no LeadFlow</h1>
+    <main className="login-page">
+      <header className="login-topbar">
+        <div className="login-brand">
+          <span className="brand-drop" aria-hidden="true" />
+          <span>LeadFlow</span>
+        </div>
 
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <label>
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
-        </label>
-
-        <label>
-          Senha
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-          />
-        </label>
-
-        {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
-
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Entrando...' : 'Entrar'}
+        <button type="button" className="topbar-enter-button">
+          <span aria-hidden="true">↗</span>
+          <span>Entrar</span>
         </button>
-      </form>
+      </header>
+
+      <section className="login-hero">
+        <span className="hero-drop" aria-hidden="true" />
+        <h1>Login</h1>
+
+        <form className="login-card" onSubmit={handleSubmit}>
+          <label>
+            E-mail
+            <input
+              type="email"
+              placeholder="exemplo@leadflow.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </label>
+
+          <label>
+            Senha
+            <input
+              type="password"
+              placeholder="Senha"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+          </label>
+
+          {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
+
+          <button type="submit" className="login-submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Entrando...' : 'Entrar'}
+          </button>
+
+          <p className="login-footer-text">
+            Ainda não possui uma conta? <a href="#">criar conta</a>
+          </p>
+        </form>
+      </section>
     </main>
   )
 }

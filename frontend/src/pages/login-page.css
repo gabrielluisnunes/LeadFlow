@@ -1,0 +1,128 @@
+.login-page {
+  min-height: 100vh;
+  padding: 1rem;
+  background: #f5f6fb;
+}
+
+.login-topbar {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: #2a3355;
+}
+
+.brand-drop {
+  width: 18px;
+  height: 18px;
+  background: #3b6df6;
+  border-radius: 60% 60% 70% 70% / 72% 72% 36% 36%;
+  transform: rotate(45deg);
+  display: inline-block;
+}
+
+.topbar-enter-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 0;
+  border-radius: 8px;
+  background: #3b6df6;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+}
+
+.login-hero {
+  max-width: 1120px;
+  margin: 2rem auto 0;
+  display: grid;
+  justify-items: center;
+}
+
+.hero-drop {
+  width: 48px;
+  height: 48px;
+  background: #3b6df6;
+  border-radius: 60% 60% 70% 70% / 72% 72% 36% 36%;
+  transform: rotate(45deg);
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.login-hero h1 {
+  margin: 0 0 1rem;
+  color: #2a3355;
+  font-size: 3rem;
+  line-height: 1.1;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  border: 1px solid #eceef6;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.login-card label {
+  display: grid;
+  gap: 0.35rem;
+  color: #5f6580;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.login-card input {
+  width: 100%;
+  border: 1px solid #d9deed;
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  outline: none;
+}
+
+.login-card input:focus {
+  border-color: #3b6df6;
+}
+
+.login-submit {
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #3b6df6, #2d63f3);
+  color: #fff;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+}
+
+.login-submit:disabled {
+  opacity: 0.8;
+}
+
+.login-footer-text {
+  margin: 0;
+  text-align: center;
+  color: #777f98;
+  font-size: 0.9rem;
+}
+
+.login-footer-text a {
+  color: #3b6df6;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.form-error {
+  color: #b42318;
+  margin: 0;
+}
