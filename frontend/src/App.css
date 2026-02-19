@@ -59,3 +59,21 @@
   margin: 0 0 1rem;
   padding-left: 1.25rem;
 }
+
+.lead-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.status-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-field select {
+  padding: 0.25rem 0.5rem;
+}

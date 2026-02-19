@@ -3,8 +3,16 @@ import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { env } from '../lib/env'
 import { signOut } from '../modules/auth/session'
-import { createLead, listLeads, type Lead } from '../modules/leads/api'
+import {
+  createLead,
+  listLeads,
+  updateLeadStatus,
+  type Lead,
+  type LeadStatus
+} from '../modules/leads/api'
 import { ApiError } from '../types/api'
+
+const leadStatusOptions: LeadStatus[] = ['NEW', 'CONTACTED', 'WON', 'LOST']
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -13,6 +21,8 @@ export function HomePage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [isCreating, setIsCreating] = useState(false)
   const [createErrorMessage, setCreateErrorMessage] = useState('')
+  const [isUpdatingStatusId, setIsUpdatingStatusId] = useState<string | null>(null)
+  const [statusErrorMessage, setStatusErrorMessage] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -88,6 +98,33 @@ export function HomePage() {
       }
     } finally {
       setIsCreating(false)
+    }
+  }
+
+  async function handleUpdateStatus(leadId: string, status: LeadStatus) {
+    setStatusErrorMessage('')
+    setIsUpdatingStatusId(leadId)
+
+    try {
+      const updatedLead = await updateLeadStatus(leadId, status)
+
+      setLeads((current) =>
+        current.map((lead) => (lead.id === updatedLead.id ? updatedLead : lead))
+      )
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        signOut()
+        navigate('/login', { replace: true })
+        return
+      }
+
+      if (error instanceof ApiError) {
+        setStatusErrorMessage(error.message)
+      } else {
+        setStatusErrorMessage('Não foi possível atualizar o status do lead')
+      }
+    } finally {
+      setIsUpdatingStatusId(null)
     }
   }
 
@@ -169,13 +206,35 @@ export function HomePage() {
         {isLoading ? <p>Carregando leads...</p> : null}
 
         {!isLoading && errorMessage ? <p className="form-error">{errorMessage}</p> : null}
+        {!isLoading && !errorMessage && statusErrorMessage ? (
+          <p className="form-error">{statusErrorMessage}</p>
+        ) : null}
 
         {!isLoading && !errorMessage ? (
           leads.length > 0 ? (
             <ul className="lead-list">
               {leads.map((lead) => (
-                <li key={lead.id}>
-                  <strong>{lead.name}</strong> — {lead.status} — {lead.phone}
+                <li key={lead.id} className="lead-item">
+                  <div>
+                    <strong>{lead.name}</strong> — {lead.phone}
+                  </div>
+
+                  <label className="status-field">
+                    Status
+                    <select
+                      value={lead.status}
+                      onChange={(event) =>
+                        handleUpdateStatus(lead.id, event.target.value as LeadStatus)
+                      }
+                      disabled={isUpdatingStatusId === lead.id}
+                    >
+                      {leadStatusOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </li>
               ))}
             </ul>

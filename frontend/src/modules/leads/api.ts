@@ -29,3 +29,10 @@ export function createLead(input: CreateLeadInput) {
     body: JSON.stringify(input)
   })
 }
+
+export function updateLeadStatus(leadId: string, status: LeadStatus) {
+  return request<Lead>(`/leads/${leadId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status })
+  })
+}
