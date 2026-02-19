@@ -18,6 +18,7 @@ import {
   markFollowUpAsDone,
   type FollowUpWithLead
 } from '../modules/followups/api'
+import { listActivities, type Activity } from '../modules/activities/api'
 import { ApiError } from '../types/api'
 
 const leadStatusOptions: LeadStatus[] = ['NEW', 'CONTACTED', 'WON', 'LOST']
@@ -39,6 +40,9 @@ export function HomePage() {
   const [isCreatingFollowUp, setIsCreatingFollowUp] = useState(false)
   const [isMarkingDoneId, setIsMarkingDoneId] = useState<string | null>(null)
   const [createFollowUpErrorMessage, setCreateFollowUpErrorMessage] = useState('')
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [isLoadingActivities, setIsLoadingActivities] = useState(true)
+  const [activitiesErrorMessage, setActivitiesErrorMessage] = useState('')
   const [followUpFormData, setFollowUpFormData] = useState({
     leadId: '',
     scheduledAt: ''
@@ -113,6 +117,34 @@ export function HomePage() {
     loadFollowUpsAgenda()
   }, [])
 
+  async function loadActivities() {
+    setActivitiesErrorMessage('')
+    setIsLoadingActivities(true)
+
+    try {
+      const items = await listActivities()
+      setActivities(items)
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        signOut()
+        navigate('/login', { replace: true })
+        return
+      }
+
+      if (error instanceof ApiError) {
+        setActivitiesErrorMessage(error.message)
+      } else {
+        setActivitiesErrorMessage('Não foi possível carregar o histórico de atividades')
+      }
+    } finally {
+      setIsLoadingActivities(false)
+    }
+  }
+
+  useEffect(() => {
+    loadActivities()
+  }, [])
+
   function handleSignOut() {
     signOut()
     navigate('/login', { replace: true })
@@ -180,6 +212,7 @@ export function HomePage() {
       }))
 
       await loadFollowUpsAgenda()
+      await loadActivities()
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         signOut()
@@ -204,6 +237,7 @@ export function HomePage() {
     try {
       await markFollowUpAsDone(followUpId)
       await loadFollowUpsAgenda()
+      await loadActivities()
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         signOut()
@@ -223,6 +257,21 @@ export function HomePage() {
 
   function formatDateTime(value: string) {
     return new Date(value).toLocaleString('pt-BR')
+  }
+
+  function getActivityLabel(activity: Activity) {
+    switch (activity.type) {
+      case 'LEAD_CREATED':
+        return 'Lead criado'
+      case 'LEAD_STATUS_UPDATED':
+        return 'Status do lead atualizado'
+      case 'FOLLOWUP_CREATED':
+        return 'Follow-up criado'
+      case 'FOLLOWUP_DONE':
+        return 'Follow-up concluído'
+      default:
+        return activity.type
+    }
   }
 
   async function handleUpdateStatus(leadId: string, status: LeadStatus) {
@@ -500,6 +549,38 @@ export function HomePage() {
             </button>
           </>
         ) : null}
+      </section>
+
+      <section className="list-section">
+        <h2>Atividades</h2>
+
+        {isLoadingActivities ? <p>Carregando atividades...</p> : null}
+        {!isLoadingActivities && activitiesErrorMessage ? (
+          <p className="form-error">{activitiesErrorMessage}</p>
+        ) : null}
+
+        {!isLoadingActivities && !activitiesErrorMessage ? (
+          activities.length > 0 ? (
+            <ul className="activity-list">
+              {activities.map((activity) => (
+                <li key={activity.id} className="activity-item">
+                  <strong>{getActivityLabel(activity)}</strong>
+                  <div className="activity-meta">
+                    <span>{formatDateTime(activity.createdAt)}</span>
+                    {activity.leadId ? <span>Lead: {activity.leadId}</span> : null}
+                    {activity.followUpId ? <span>Follow-up: {activity.followUpId}</span> : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Nenhuma atividade registrada.</p>
+          )
+        ) : null}
+
+        <button type="button" onClick={loadActivities} disabled={isLoadingActivities}>
+          Atualizar atividades
+        </button>
       </section>
 
       <button type="button" onClick={handleSignOut}>

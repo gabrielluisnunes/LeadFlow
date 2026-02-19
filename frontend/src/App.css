@@ -95,3 +95,19 @@
   gap: 1rem;
   margin-bottom: 0.5rem;
 }
+
+.activity-list {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.activity-item {
+  margin-bottom: 0.75rem;
+}
+
+.activity-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
