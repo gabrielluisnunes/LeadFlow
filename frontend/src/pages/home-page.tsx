@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { env } from '../lib/env'
 import { signOut } from '../modules/auth/session'
+import { useApiErrorHandler } from '../hooks/use-api-error-handler'
 import {
   createLead,
   listLeads,
@@ -20,12 +21,12 @@ import {
 } from '../modules/followups/api'
 import { listActivities, type Activity } from '../modules/activities/api'
 import { getLeadsOverviewMetrics, type LeadsOverviewMetrics } from '../modules/metrics/api'
-import { ApiError } from '../types/api'
 
 const leadStatusOptions: LeadStatus[] = ['NEW', 'CONTACTED', 'WON', 'LOST']
 
 export function HomePage() {
   const navigate = useNavigate()
+  const { handleApiError } = useApiErrorHandler()
   const [leads, setLeads] = useState<Lead[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
@@ -66,17 +67,7 @@ export function HomePage() {
       const items = await listLeads()
       setLeads(items)
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        signOut()
-        navigate('/login', { replace: true })
-        return
-      }
-
-      if (error instanceof ApiError) {
-        setErrorMessage(error.message)
-      } else {
-        setErrorMessage('Não foi possível carregar os leads')
-      }
+      handleApiError(error, 'Não foi possível carregar os leads', setErrorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -101,17 +92,11 @@ export function HomePage() {
       setOverdueFollowUps(overdue)
       setUpcomingFollowUps(upcoming)
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        signOut()
-        navigate('/login', { replace: true })
-        return
-      }
-
-      if (error instanceof ApiError) {
-        setFollowUpErrorMessage(error.message)
-      } else {
-        setFollowUpErrorMessage('Não foi possível carregar a agenda de follow-ups')
-      }
+      handleApiError(
+        error,
+        'Não foi possível carregar a agenda de follow-ups',
+        setFollowUpErrorMessage
+      )
     } finally {
       setIsLoadingFollowUps(false)
     }
@@ -129,17 +114,11 @@ export function HomePage() {
       const items = await listActivities()
       setActivities(items)
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        signOut()
-        navigate('/login', { replace: true })
-        return
-      }
-
-      if (error instanceof ApiError) {
-        setActivitiesErrorMessage(error.message)
-      } else {
-        setActivitiesErrorMessage('Não foi possível carregar o histórico de atividades')
-      }
+      handleApiError(
+        error,
+        'Não foi possível carregar o histórico de atividades',
+        setActivitiesErrorMessage
+      )
     } finally {
       setIsLoadingActivities(false)
     }
@@ -157,17 +136,7 @@ export function HomePage() {
       const data = await getLeadsOverviewMetrics()
       setMetrics(data)
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        signOut()
-        navigate('/login', { replace: true })
-        return
-      }
-
-      if (error instanceof ApiError) {
-        setMetricsErrorMessage(error.message)
-      } else {
-        setMetricsErrorMessage('Não foi possível carregar as métricas')
-      }
+      handleApiError(error, 'Não foi possível carregar as métricas', setMetricsErrorMessage)
     } finally {
       setIsLoadingMetrics(false)
     }
@@ -212,17 +181,7 @@ export function HomePage() {
         }))
       }
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        signOut()
-        navigate('/login', { replace: true })
-        return
-      }
-
-      if (error instanceof ApiError) {
-        setCreateErrorMessage(error.message)
-      } else {
-        setCreateErrorMessage('Não foi possível criar o lead')
-      }
+      handleApiError(error, 'Não foi possível criar o lead', setCreateErrorMessage)
     } finally {
       setIsCreating(false)
     }
@@ -247,17 +206,7 @@ export function HomePage() {
       await loadFollowUpsAgenda()
       await loadActivities()
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        signOut()
-        navigate('/login', { replace: true })
-        return
-      }
-
-      if (error instanceof ApiError) {
-        setCreateFollowUpErrorMessage(error.message)
-      } else {
-        setCreateFollowUpErrorMessage('Não foi possível criar o follow-up')
-      }
+      handleApiError(error, 'Não foi possível criar o follow-up', setCreateFollowUpErrorMessage)
     } finally {
       setIsCreatingFollowUp(false)
     }
@@ -272,17 +221,7 @@ export function HomePage() {
       await loadFollowUpsAgenda()
       await loadActivities()
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        signOut()
-        navigate('/login', { replace: true })
-        return
-      }
-
-      if (error instanceof ApiError) {
-        setCreateFollowUpErrorMessage(error.message)
-      } else {
-        setCreateFollowUpErrorMessage('Não foi possível concluir o follow-up')
-      }
+      handleApiError(error, 'Não foi possível concluir o follow-up', setCreateFollowUpErrorMessage)
     } finally {
       setIsMarkingDoneId(null)
     }
@@ -320,17 +259,7 @@ export function HomePage() {
 
       await loadMetrics()
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        signOut()
-        navigate('/login', { replace: true })
-        return
-      }
-
-      if (error instanceof ApiError) {
-        setStatusErrorMessage(error.message)
-      } else {
-        setStatusErrorMessage('Não foi possível atualizar o status do lead')
-      }
+      handleApiError(error, 'Não foi possível atualizar o status do lead', setStatusErrorMessage)
     } finally {
       setIsUpdatingStatusId(null)
     }
