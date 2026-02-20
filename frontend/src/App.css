@@ -88,6 +88,27 @@
   filter: drop-shadow(0 0 8px rgba(59, 109, 246, 0.75));
 }
 
+.period-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.period-filter-chip {
+  border: 1px solid #dbe1f3;
+  border-radius: 999px;
+  background: #fff;
+  color: #465078;
+  padding: 0.38rem 0.72rem;
+  font-weight: 600;
+}
+
+.period-filter-chip.active {
+  background: #e8ebf7;
+  border-color: #d0d9f0;
+  color: #2f3a65;
+}
+
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

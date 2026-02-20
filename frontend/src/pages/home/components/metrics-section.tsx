@@ -1,9 +1,14 @@
+import { useMemo, useState } from 'react'
+import type { Lead, LeadStatus } from '../../../modules/leads/api'
 import type { LeadsOverviewMetrics } from '../../../modules/metrics/api'
+
+type PeriodFilter = '7d' | '30d' | '90d' | 'all'
 
 interface MetricsSectionProps {
   isLoading: boolean
   errorMessage: string
   metrics: LeadsOverviewMetrics | null
+  leads: Lead[]
   onRefresh: () => void
 }
 
@@ -11,21 +16,73 @@ export function MetricsSection({
   isLoading,
   errorMessage,
   metrics,
+  leads,
   onRefresh
 }: MetricsSectionProps) {
-  const totalLeads = metrics?.totalLeads ?? 0
-  const conversionRate = metrics?.conversaionRate ?? 0
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('30d')
+
+  const filteredLeads = useMemo(() => {
+    if (periodFilter === 'all') {
+      return leads
+    }
+
+    const days = Number(periodFilter.replace('d', ''))
+    const startDate = new Date()
+    startDate.setHours(0, 0, 0, 0)
+    startDate.setDate(startDate.getDate() - (days - 1))
+
+    return leads.filter((lead) => new Date(lead.createdAt) >= startDate)
+  }, [leads, periodFilter])
+
+  const leadsByStatus = useMemo(() => {
+    return filteredLeads.reduce(
+      (accumulator, lead) => {
+        accumulator[lead.status] += 1
+        return accumulator
+      },
+      {
+        NEW: 0,
+        CONTACTED: 0,
+        WON: 0,
+        LOST: 0
+      } satisfies Record<LeadStatus, number>
+    )
+  }, [filteredLeads])
+
+  const totalLeads = periodFilter === 'all' && metrics ? metrics.totalLeads : filteredLeads.length
+
+  const conversionRate =
+    periodFilter === 'all' && metrics
+      ? metrics.conversaionRate
+      : totalLeads > 0
+        ? Number(((leadsByStatus.WON / totalLeads) * 100).toFixed(1))
+        : 0
 
   const statusData = [
-    { key: 'NEW', label: 'Novos', emoji: '🆕', value: metrics?.byStatus.NEW ?? 0 },
+    {
+      key: 'NEW',
+      label: 'Novos',
+      emoji: '🆕',
+      value: periodFilter === 'all' && metrics ? metrics.byStatus.NEW : leadsByStatus.NEW
+    },
     {
       key: 'CONTACTED',
       label: 'Em contato',
       emoji: '💬',
-      value: metrics?.byStatus.CONTACTED ?? 0
+      value: periodFilter === 'all' && metrics ? metrics.byStatus.CONTACTED : leadsByStatus.CONTACTED
     },
-    { key: 'WON', label: 'Convertidos', emoji: '🏆', value: metrics?.byStatus.WON ?? 0 },
-    { key: 'LOST', label: 'Perdidos', emoji: '📉', value: metrics?.byStatus.LOST ?? 0 }
+    {
+      key: 'WON',
+      label: 'Convertidos',
+      emoji: '🏆',
+      value: periodFilter === 'all' && metrics ? metrics.byStatus.WON : leadsByStatus.WON
+    },
+    {
+      key: 'LOST',
+      label: 'Perdidos',
+      emoji: '📉',
+      value: periodFilter === 'all' && metrics ? metrics.byStatus.LOST : leadsByStatus.LOST
+    }
   ]
 
   const bestStatus = statusData.reduce((best, current) =>
@@ -50,6 +107,37 @@ export function MetricsSection({
         </button>
       </header>
 
+      <section className="period-filter-group" aria-label="Filtro de período das métricas">
+        <button
+          type="button"
+          className={`period-filter-chip ${periodFilter === '7d' ? 'active' : ''}`}
+          onClick={() => setPeriodFilter('7d')}
+        >
+          Últimos 7 dias
+        </button>
+        <button
+          type="button"
+          className={`period-filter-chip ${periodFilter === '30d' ? 'active' : ''}`}
+          onClick={() => setPeriodFilter('30d')}
+        >
+          Últimos 30 dias
+        </button>
+        <button
+          type="button"
+          className={`period-filter-chip ${periodFilter === '90d' ? 'active' : ''}`}
+          onClick={() => setPeriodFilter('90d')}
+        >
+          Últimos 90 dias
+        </button>
+        <button
+          type="button"
+          className={`period-filter-chip ${periodFilter === 'all' ? 'active' : ''}`}
+          onClick={() => setPeriodFilter('all')}
+        >
+          Todo período
+        </button>
+      </section>
+
       {isLoading ? <p>Carregando métricas...</p> : null}
       {!isLoading && errorMessage ? <p className="form-error">{errorMessage}</p> : null}
 
@@ -73,7 +161,7 @@ export function MetricsSection({
 
             <article className="metrics-kpi-card">
               <small>⚖️ Perdas</small>
-              <strong>{metrics.byStatus.LOST}</strong>
+              <strong>{statusData.find((item) => item.key === 'LOST')?.value ?? 0}</strong>
             </article>
           </section>
 
@@ -113,8 +201,9 @@ export function MetricsSection({
             <article className="metrics-insight-card">
               <h4>📌 Leitura rápida</h4>
               <p>
-                Você possui <strong>{metrics.byStatus.CONTACTED}</strong> leads em contato e{' '}
-                <strong>{metrics.byStatus.WON}</strong> já convertidos.
+                Você possui <strong>{statusData.find((item) => item.key === 'CONTACTED')?.value ?? 0}</strong>{' '}
+                leads em contato e <strong>{statusData.find((item) => item.key === 'WON')?.value ?? 0}</strong>{' '}
+                já convertidos.
               </p>
             </article>
 

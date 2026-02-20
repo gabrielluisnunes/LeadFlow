@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import type { Activity, ActivityType } from '../../../modules/activities/api'
 
+type PeriodFilter = '7d' | '30d' | '90d' | 'all'
+
 interface ActivitiesSectionProps {
   isLoadingActivities: boolean
   activitiesErrorMessage: string
@@ -69,9 +71,23 @@ export function ActivitiesSection({
   formatDateTime
 }: ActivitiesSectionProps) {
   const [activeFilter, setActiveFilter] = useState<ActivityType | 'ALL'>('ALL')
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('30d')
+
+  const periodFilteredActivities = useMemo(() => {
+    if (periodFilter === 'all') {
+      return activities
+    }
+
+    const days = Number(periodFilter.replace('d', ''))
+    const startDate = new Date()
+    startDate.setHours(0, 0, 0, 0)
+    startDate.setDate(startDate.getDate() - (days - 1))
+
+    return activities.filter((activity) => new Date(activity.createdAt) >= startDate)
+  }, [activities, periodFilter])
 
   const activityCounts = useMemo(() => {
-    return activities.reduce(
+    return periodFilteredActivities.reduce(
       (accumulator, item) => {
         accumulator[item.type] += 1
         return accumulator
@@ -83,15 +99,15 @@ export function ActivitiesSection({
         FOLLOWUP_DONE: 0
       } as Record<ActivityType, number>
     )
-  }, [activities])
+  }, [periodFilteredActivities])
 
   const filteredActivities = useMemo(() => {
     if (activeFilter === 'ALL') {
-      return activities
+      return periodFilteredActivities
     }
 
-    return activities.filter((item) => item.type === activeFilter)
-  }, [activities, activeFilter])
+    return periodFilteredActivities.filter((item) => item.type === activeFilter)
+  }, [periodFilteredActivities, activeFilter])
 
   const filterButtons: Array<{
     key: ActivityType | 'ALL'
@@ -99,7 +115,7 @@ export function ActivitiesSection({
     count: number
     emoji: string
   }> = [
-    { key: 'ALL', label: 'Todas', count: activities.length, emoji: '🗂️' },
+    { key: 'ALL', label: 'Todas', count: periodFilteredActivities.length, emoji: '🗂️' },
     { key: 'LEAD_CREATED', label: 'Leads criados', count: activityCounts.LEAD_CREATED, emoji: '🆕' },
     {
       key: 'LEAD_STATUS_UPDATED',
@@ -142,7 +158,7 @@ export function ActivitiesSection({
       <section className="activities-summary-grid" aria-label="Resumo de atividades">
         <article className="activities-summary-card">
           <small>Total</small>
-          <strong>{activities.length}</strong>
+          <strong>{periodFilteredActivities.length}</strong>
         </article>
         <article className="activities-summary-card">
           <small>Leads criados</small>
@@ -156,6 +172,37 @@ export function ActivitiesSection({
           <small>Follow-ups concluídos</small>
           <strong>{activityCounts.FOLLOWUP_DONE}</strong>
         </article>
+      </section>
+
+      <section className="period-filter-group" aria-label="Filtro de período das atividades">
+        <button
+          type="button"
+          className={`period-filter-chip ${periodFilter === '7d' ? 'active' : ''}`}
+          onClick={() => setPeriodFilter('7d')}
+        >
+          Últimos 7 dias
+        </button>
+        <button
+          type="button"
+          className={`period-filter-chip ${periodFilter === '30d' ? 'active' : ''}`}
+          onClick={() => setPeriodFilter('30d')}
+        >
+          Últimos 30 dias
+        </button>
+        <button
+          type="button"
+          className={`period-filter-chip ${periodFilter === '90d' ? 'active' : ''}`}
+          onClick={() => setPeriodFilter('90d')}
+        >
+          Últimos 90 dias
+        </button>
+        <button
+          type="button"
+          className={`period-filter-chip ${periodFilter === 'all' ? 'active' : ''}`}
+          onClick={() => setPeriodFilter('all')}
+        >
+          Todo período
+        </button>
       </section>
 
       <section className="activities-filters" aria-label="Filtros de atividades">

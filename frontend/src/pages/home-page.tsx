@@ -415,6 +415,7 @@ export function HomePage() {
             isLoading={isLoadingMetrics}
             errorMessage={metricsErrorMessage}
             metrics={metrics}
+            leads={leads}
             onRefresh={loadMetrics}
           />
         </Suspense>
