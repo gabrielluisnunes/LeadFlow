@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react'
-import { maskDateTimeBRInput } from '../../../../lib/format-date-br'
+import { maskDateBRInput } from '../../../../lib/format-date-br'
 
 const sourceOptions = ['Instagram', 'Facebook', 'WhatsApp', 'Email'] as const
 
@@ -149,11 +149,11 @@ export function CreateLeadForm({
             type="text"
             value={formData.observationDateTime}
             onChange={(event) =>
-              onLeadFieldChange('observationDateTime', maskDateTimeBRInput(event.target.value))
+              onLeadFieldChange('observationDateTime', maskDateBRInput(event.target.value))
             }
             inputMode="numeric"
-            maxLength={16}
-            placeholder="dd/mm/aaaa hh:mm"
+            maxLength={10}
+            placeholder="dd/mm/aaaa"
           />
         </label>
 

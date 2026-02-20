@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react'
 import type { Lead } from '../../../modules/leads/api'
 import type { FollowUpWithLead } from '../../../modules/followups/api'
+import { maskDateBRInput } from '../../../lib/format-date-br'
 
 interface FollowUpFormData {
   leadId: string
@@ -65,11 +66,16 @@ export function FollowUpsSection({
           </label>
 
           <label>
-            Data e hora
+            Data
             <input
-              type="datetime-local"
+              type="text"
               value={formData.scheduledAt}
-              onChange={(event) => onFollowUpFieldChange('scheduledAt', event.target.value)}
+              onChange={(event) =>
+                onFollowUpFieldChange('scheduledAt', maskDateBRInput(event.target.value))
+              }
+              inputMode="numeric"
+              maxLength={10}
+              placeholder="dd/mm/aaaa"
               required
             />
           </label>

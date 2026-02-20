@@ -8,7 +8,7 @@ import {
   type LeadStatus,
   type UpdateLeadInput
 } from '../../../modules/leads/api'
-import { formatDateBR, maskDateTimeBRInput, parseDateTimeBRToIso } from '../../../lib/format-date-br'
+import { formatDateBR, maskDateBRInput, parseDateBRToIso } from '../../../lib/format-date-br'
 import { CreateLeadForm } from './leads/create-lead-form'
 import { LeadCard } from './leads/lead-card'
 import { LeadsFilters } from './leads/leads-filters'
@@ -226,7 +226,7 @@ export function LeadsSection({
     try {
       await addLeadNote(selectedLeadDetails.id, {
         content: newNoteContent.trim(),
-        createdAt: parseDateTimeBRToIso(newNoteDateTime)
+        createdAt: parseDateBRToIso(newNoteDateTime)
       })
 
       const refreshed = await getLeadDetails(selectedLeadDetails.id)
@@ -448,11 +448,11 @@ export function LeadsSection({
                                 type="text"
                                 value={newNoteDateTime}
                                 onChange={(event) =>
-                                  setNewNoteDateTime(maskDateTimeBRInput(event.target.value))
+                                  setNewNoteDateTime(maskDateBRInput(event.target.value))
                                 }
                                 inputMode="numeric"
-                                maxLength={16}
-                                placeholder="dd/mm/aaaa hh:mm"
+                                maxLength={10}
+                                placeholder="dd/mm/aaaa"
                               />
                             </label>
 

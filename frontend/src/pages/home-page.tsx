@@ -25,7 +25,7 @@ import {
   type LeadStatus,
   type UpdateLeadInput
 } from '../modules/leads/api'
-import { formatDateBR, parseDateTimeBRToIso } from '../lib/format-date-br'
+import { formatDateBR, parseDateBRToIso } from '../lib/format-date-br'
 import {
   listOverdueFollowUps,
   listTodayFollowUps,
@@ -258,7 +258,7 @@ export function HomePage() {
       if (formData.observation.trim()) {
         await addLeadNote(createdLead.id, {
           content: formData.observation.trim(),
-          createdAt: parseDateTimeBRToIso(formData.observationDateTime)
+          createdAt: parseDateBRToIso(formData.observationDateTime)
         })
       }
 
