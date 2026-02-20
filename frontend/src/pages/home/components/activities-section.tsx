@@ -1,4 +1,5 @@
-import type { Activity } from '../../../modules/activities/api'
+import { useMemo, useState } from 'react'
+import type { Activity, ActivityType } from '../../../modules/activities/api'
 
 interface ActivitiesSectionProps {
   isLoadingActivities: boolean
@@ -23,6 +24,43 @@ function getActivityLabel(activity: Activity) {
   }
 }
 
+function getActivityEmoji(type: ActivityType) {
+  switch (type) {
+    case 'LEAD_CREATED':
+      return '🆕'
+    case 'LEAD_STATUS_UPDATED':
+      return '🔄'
+    case 'FOLLOWUP_CREATED':
+      return '📅'
+    case 'FOLLOWUP_DONE':
+      return '✅'
+    default:
+      return '📝'
+  }
+}
+
+function getRelativeTimeLabel(dateValue: string) {
+  const now = Date.now()
+  const createdAt = new Date(dateValue).getTime()
+  const diffInMinutes = Math.floor((now - createdAt) / 60000)
+
+  if (diffInMinutes < 1) {
+    return 'Agora'
+  }
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} min atrás`
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60)
+  if (diffInHours < 24) {
+    return `${diffInHours}h atrás`
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24)
+  return `${diffInDays}d atrás`
+}
+
 export function ActivitiesSection({
   isLoadingActivities,
   activitiesErrorMessage,
@@ -30,14 +68,112 @@ export function ActivitiesSection({
   onRefreshActivities,
   formatDateTime
 }: ActivitiesSectionProps) {
+  const [activeFilter, setActiveFilter] = useState<ActivityType | 'ALL'>('ALL')
+
+  const activityCounts = useMemo(() => {
+    return activities.reduce(
+      (accumulator, item) => {
+        accumulator[item.type] += 1
+        return accumulator
+      },
+      {
+        LEAD_CREATED: 0,
+        LEAD_STATUS_UPDATED: 0,
+        FOLLOWUP_CREATED: 0,
+        FOLLOWUP_DONE: 0
+      } as Record<ActivityType, number>
+    )
+  }, [activities])
+
+  const filteredActivities = useMemo(() => {
+    if (activeFilter === 'ALL') {
+      return activities
+    }
+
+    return activities.filter((item) => item.type === activeFilter)
+  }, [activities, activeFilter])
+
+  const filterButtons: Array<{
+    key: ActivityType | 'ALL'
+    label: string
+    count: number
+    emoji: string
+  }> = [
+    { key: 'ALL', label: 'Todas', count: activities.length, emoji: '🗂️' },
+    { key: 'LEAD_CREATED', label: 'Leads criados', count: activityCounts.LEAD_CREATED, emoji: '🆕' },
+    {
+      key: 'LEAD_STATUS_UPDATED',
+      label: 'Status alterado',
+      count: activityCounts.LEAD_STATUS_UPDATED,
+      emoji: '🔄'
+    },
+    {
+      key: 'FOLLOWUP_CREATED',
+      label: 'Follow-up criado',
+      count: activityCounts.FOLLOWUP_CREATED,
+      emoji: '📅'
+    },
+    { key: 'FOLLOWUP_DONE', label: 'Follow-up concluído', count: activityCounts.FOLLOWUP_DONE, emoji: '✅' }
+  ]
+
   return (
-    <section className="list-section">
-      <h2 className="title-with-emoji">
-        <span className="title-emoji" aria-hidden="true">
-          📝
-        </span>
-        <span>Atividades</span>
-      </h2>
+    <section className="activities-page">
+      <header className="activities-header">
+        <div>
+          <h2 className="title-with-emoji">
+            <span className="title-emoji" aria-hidden="true">
+              📝
+            </span>
+            <span>Atividades</span>
+          </h2>
+          <p>Monitore tudo que aconteceu no CRM e filtre rapidamente por tipo de ação.</p>
+        </div>
+
+        <button
+          type="button"
+          className="activities-refresh"
+          onClick={onRefreshActivities}
+          disabled={isLoadingActivities}
+        >
+          Atualizar atividades
+        </button>
+      </header>
+
+      <section className="activities-summary-grid" aria-label="Resumo de atividades">
+        <article className="activities-summary-card">
+          <small>Total</small>
+          <strong>{activities.length}</strong>
+        </article>
+        <article className="activities-summary-card">
+          <small>Leads criados</small>
+          <strong>{activityCounts.LEAD_CREATED}</strong>
+        </article>
+        <article className="activities-summary-card">
+          <small>Follow-ups criados</small>
+          <strong>{activityCounts.FOLLOWUP_CREATED}</strong>
+        </article>
+        <article className="activities-summary-card">
+          <small>Follow-ups concluídos</small>
+          <strong>{activityCounts.FOLLOWUP_DONE}</strong>
+        </article>
+      </section>
+
+      <section className="activities-filters" aria-label="Filtros de atividades">
+        {filterButtons.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            className={`activities-filter-chip ${activeFilter === item.key ? 'active' : ''}`}
+            onClick={() => setActiveFilter(item.key)}
+          >
+            <span className="chip-emoji" aria-hidden="true">
+              {item.emoji}
+            </span>
+            <span>{item.label}</span>
+            <strong>{item.count}</strong>
+          </button>
+        ))}
+      </section>
 
       {isLoadingActivities ? <p>Carregando atividades...</p> : null}
       {!isLoadingActivities && activitiesErrorMessage ? (
@@ -45,27 +181,49 @@ export function ActivitiesSection({
       ) : null}
 
       {!isLoadingActivities && !activitiesErrorMessage ? (
-        activities.length > 0 ? (
-          <ul className="activity-list">
-            {activities.map((activity) => (
-              <li key={activity.id} className="activity-item">
-                <strong>{getActivityLabel(activity)}</strong>
-                <div className="activity-meta">
-                  <span>{formatDateTime(activity.createdAt)}</span>
-                  {activity.leadId ? <span>Lead: {activity.leadId}</span> : null}
-                  {activity.followUpId ? <span>Follow-up: {activity.followUpId}</span> : null}
+        filteredActivities.length > 0 ? (
+          <ul className="activity-timeline">
+            {filteredActivities.map((activity) => (
+              <li key={activity.id} className="activity-card">
+                <div className="activity-card-main">
+                  <span className="activity-card-icon" aria-hidden="true">
+                    {getActivityEmoji(activity.type)}
+                  </span>
+                  <div>
+                    <strong>{getActivityLabel(activity)}</strong>
+                    <p>{formatDateTime(activity.createdAt)}</p>
+                  </div>
+                  <small>{getRelativeTimeLabel(activity.createdAt)}</small>
+                </div>
+
+                <div className="activity-card-meta">
+                  {activity.leadId ? (
+                    <span>
+                      <strong>Lead:</strong> {activity.leadId.slice(0, 8)}...
+                    </span>
+                  ) : (
+                    <span>
+                      <strong>Lead:</strong> —
+                    </span>
+                  )}
+
+                  {activity.followUpId ? (
+                    <span>
+                      <strong>Follow-up:</strong> {activity.followUpId.slice(0, 8)}...
+                    </span>
+                  ) : (
+                    <span>
+                      <strong>Follow-up:</strong> —
+                    </span>
+                  )}
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p>Nenhuma atividade registrada.</p>
+          <p className="activities-empty">Nenhuma atividade encontrada para o filtro selecionado.</p>
         )
       ) : null}
-
-      <button type="button" onClick={onRefreshActivities} disabled={isLoadingActivities}>
-        Atualizar atividades
-      </button>
     </section>
   )
 }
