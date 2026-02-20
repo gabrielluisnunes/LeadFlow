@@ -36,16 +36,18 @@ export function LeadCard({
     <li className={`lead-v2-item ${isExpanded ? 'expanded' : ''}`}>
       <div className="lead-v2-main">
         <button type="button" className="lead-v2-open" onClick={() => onToggle(lead.id)}>
-          <div>
+          <div className="lead-v2-identity">
             <h4>{lead.name}</h4>
             <p>{formatPhoneForDisplay(lead.phone)}</p>
             <small>{lead.email || 'Email não informado'}</small>
           </div>
-          <span>{isExpanded ? 'Fechar lead' : 'Abrir lead'}</span>
         </button>
 
         <div className="lead-v2-right">
           <LeadStatusBadge status={lead.status} />
+          <button type="button" className="lead-v2-open-action" onClick={() => onToggle(lead.id)}>
+            {isExpanded ? 'Fechar' : 'Abrir'}
+          </button>
           <small className="lead-v2-date">{formatLeadDate(lead.createdAt)}</small>
         </div>
       </div>

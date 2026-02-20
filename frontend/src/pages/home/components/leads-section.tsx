@@ -182,13 +182,20 @@ export function LeadsSection({
     setIsSavingLead(true)
     setLeadDetailsErrorMessage('')
 
+    const payload: UpdateLeadInput = {
+      name: leadEditData.name.trim(),
+      phone: digits,
+      email: leadEditData.email.trim() || undefined,
+      source: leadEditData.source.trim() || undefined
+    }
+
+    console.log('[LeadFlow] handleSaveLead submit', {
+      leadId: selectedLeadDetails.id,
+      payload
+    })
+
     try {
-      await onUpdateLead(selectedLeadDetails.id, {
-        name: leadEditData.name,
-        phone: digits,
-        email: leadEditData.email || undefined,
-        source: leadEditData.source || undefined
-      })
+      await onUpdateLead(selectedLeadDetails.id, payload)
 
       const refreshed = await getLeadDetails(selectedLeadDetails.id)
       setSelectedLeadDetails(refreshed)
@@ -260,7 +267,7 @@ export function LeadsSection({
           <header className="leads-v2-card-header">
             <div>
               <h3>Leads cadastrados</h3>
-              <p>Clique em um lead para abrir detalhes, editar dados e registrar observações.</p>
+              <p>Acompanhe, filtre e atualize seus contatos.</p>
             </div>
             <button type="button" className="leads-v2-secondary" onClick={onRefreshLeads}>
               Atualizar
@@ -409,7 +416,7 @@ export function LeadsSection({
                                 onChange={(event) =>
                                   setLeadEditData((current) => ({ ...current, source: event.target.value }))
                                 }
-                                placeholder="Ex.: Indicação, Evento, Site..."
+                                placeholder=""
                               />
                             </label>
                           ) : null}
@@ -429,7 +436,7 @@ export function LeadsSection({
                                 value={newNoteContent}
                                 onChange={(event) => setNewNoteContent(event.target.value)}
                                 rows={3}
-                                placeholder="Ex.: Cliente prefere contato no fim da tarde..."
+                                placeholder=""
                                 required
                               />
                             </label>

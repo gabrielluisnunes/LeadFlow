@@ -24,6 +24,20 @@ interface CreateLeadFormProps {
   formatPhoneForDisplay: (value: string) => string
 }
 
+function formatDateInput(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 8)
+
+  if (digits.length <= 2) {
+    return digits
+  }
+
+  if (digits.length <= 4) {
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  }
+
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+}
+
 export function CreateLeadForm({
   formData,
   isCreating,
@@ -40,7 +54,7 @@ export function CreateLeadForm({
     <article className="leads-v2-card" id="create-lead-card">
       <header className="leads-v2-card-header">
         <h3>Novo lead</h3>
-        <p>Cadastre contato, origem e uma observação inicial.</p>
+        <p>Cadastro rápido.</p>
       </header>
 
       <form className="auth-form leads-v2-form" onSubmit={onCreateLead}>
@@ -74,9 +88,7 @@ export function CreateLeadForm({
 
         {showPhoneError ? (
           <p className="field-help field-help-error">Informe um telefone com DDD (10 ou 11 dígitos).</p>
-        ) : (
-          <p className="field-help">Digite só números. Ex.: (45) 98814-0524.</p>
-        )}
+        ) : null}
 
         <label className="leads-v2-field half">
           Email (opcional)
@@ -129,7 +141,7 @@ export function CreateLeadForm({
               type="text"
               value={sourceOptions.includes(formData.source as (typeof sourceOptions)[number]) ? '' : formData.source}
               onChange={(event) => onLeadFieldChange('source', event.target.value)}
-              placeholder="Ex.: Indicação, Evento, Site..."
+              placeholder=""
             />
           </label>
         ) : null}
@@ -139,17 +151,22 @@ export function CreateLeadForm({
           <textarea
             value={formData.observation}
             onChange={(event) => onLeadFieldChange('observation', event.target.value)}
-            placeholder="Anote informações importantes sobre esse contato..."
+            placeholder=""
             rows={3}
           />
         </label>
 
         <label className="leads-v2-field">
-          Data e hora da observação (opcional)
+          Data da observação (opcional)
           <input
-            type="datetime-local"
+            type="text"
             value={formData.observationDateTime}
-            onChange={(event) => onLeadFieldChange('observationDateTime', event.target.value)}
+            onChange={(event) =>
+              onLeadFieldChange('observationDateTime', formatDateInput(event.target.value))
+            }
+            inputMode="numeric"
+            maxLength={10}
+            placeholder="dd/mm/aaaa"
           />
         </label>
 

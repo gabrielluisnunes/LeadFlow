@@ -240,6 +240,29 @@ export function HomePage() {
     setFormData((current) => ({ ...current, [field]: value }))
   }
 
+  function parseBrDateToIso(dateValue: string) {
+    const trimmed = dateValue.trim()
+
+    if (!trimmed) {
+      return undefined
+    }
+
+    const match = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+
+    if (!match) {
+      return undefined
+    }
+
+    const [, day, month, year] = match
+    const isoCandidate = new Date(`${year}-${month}-${day}T12:00:00`)
+
+    if (Number.isNaN(isoCandidate.getTime())) {
+      return undefined
+    }
+
+    return isoCandidate.toISOString()
+  }
+
   async function handleCreateLead(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setCreateErrorMessage('')
@@ -256,9 +279,7 @@ export function HomePage() {
       if (formData.observation.trim()) {
         await addLeadNote(createdLead.id, {
           content: formData.observation.trim(),
-          createdAt: formData.observationDateTime
-            ? new Date(formData.observationDateTime).toISOString()
-            : undefined
+          createdAt: parseBrDateToIso(formData.observationDateTime)
         })
       }
 
@@ -285,13 +306,17 @@ export function HomePage() {
     setStatusErrorMessage('')
     setIsUpdatingStatusId(leadId)
 
+    console.log('[LeadFlow] updateLead submit', { leadId, input })
+
     try {
       const updatedLead = await updateLead(leadId, input)
+      console.log('[LeadFlow] updateLead success', updatedLead)
 
       setLeads((current) =>
         current.map((lead) => (lead.id === updatedLead.id ? updatedLead : lead))
       )
     } catch (error) {
+      console.error('[LeadFlow] updateLead error', { leadId, input, error })
       handleApiError(error, 'Não foi possível atualizar o lead', setStatusErrorMessage)
       throw error
     } finally {
@@ -580,7 +605,7 @@ export function HomePage() {
               <span>Mostrar menu</span>
             </button>
           ) : null}
-          <h1>{pageTitleMap[activeView]}</h1>
+          {activeView !== 'leads' ? <h1>{pageTitleMap[activeView]}</h1> : null}
         </header>
 
         {renderMainContent()}

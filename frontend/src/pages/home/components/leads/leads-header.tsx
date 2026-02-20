@@ -7,11 +7,11 @@ export function LeadsHeader({ onCreateClick }: LeadsHeaderProps) {
     <header className="leads-v2-header">
       <div>
         <h2>Leads</h2>
-        <p>Gerencie seus contatos e acompanhe oportunidades</p>
+        <p>Gerencie seus contatos e oportunidades</p>
       </div>
 
       <button type="button" className="leads-v2-primary" onClick={onCreateClick}>
-        + Novo Lead
+        Novo Lead
       </button>
     </header>
   )
