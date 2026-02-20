@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
@@ -29,10 +29,30 @@ import {
 } from '../modules/followups/api'
 import { listActivities, type Activity } from '../modules/activities/api'
 import { getLeadsOverviewMetrics, type LeadsOverviewMetrics } from '../modules/metrics/api'
-import { MetricsSection } from './home/components/metrics-section'
-import { LeadsSection } from './home/components/leads-section'
-import { ActivitiesSection } from './home/components/activities-section'
-import { DashboardSection } from './home/components/dashboard-section'
+
+const MetricsSection = lazy(() =>
+  import('./home/components/metrics-section').then((module) => ({
+    default: module.MetricsSection
+  }))
+)
+
+const LeadsSection = lazy(() =>
+  import('./home/components/leads-section').then((module) => ({
+    default: module.LeadsSection
+  }))
+)
+
+const ActivitiesSection = lazy(() =>
+  import('./home/components/activities-section').then((module) => ({
+    default: module.ActivitiesSection
+  }))
+)
+
+const DashboardSection = lazy(() =>
+  import('./home/components/dashboard-section').then((module) => ({
+    default: module.DashboardSection
+  }))
+)
 
 type HomeView = 'inicio' | 'leads' | 'dashboard' | 'atividades' | 'metricas' | 'perfil'
 
@@ -267,6 +287,14 @@ export function HomePage() {
 
   const totalOpenFollowUps = todayFollowUps.length + overdueFollowUps.length + upcomingFollowUps.length
 
+  function renderSectionFallback(message: string) {
+    return (
+      <section className="list-section">
+        <p>{message}</p>
+      </section>
+    )
+  }
+
   function renderMainContent() {
     if (activeView === 'inicio') {
       return (
@@ -333,55 +361,63 @@ export function HomePage() {
 
     if (activeView === 'leads') {
       return (
-        <LeadsSection
-          formData={formData}
-          isCreating={isCreating}
-          createErrorMessage={createErrorMessage}
-          onCreateLead={handleCreateLead}
-          onLeadFieldChange={handleLeadFieldChange}
-          leads={leads}
-          isLoading={isLoading}
-          errorMessage={errorMessage}
-          statusErrorMessage={statusErrorMessage}
-          isUpdatingStatusId={isUpdatingStatusId}
-          onUpdateStatus={handleUpdateStatus}
-          onRefreshLeads={loadLeads}
-        />
+        <Suspense fallback={renderSectionFallback('Carregando seção de leads...')}>
+          <LeadsSection
+            formData={formData}
+            isCreating={isCreating}
+            createErrorMessage={createErrorMessage}
+            onCreateLead={handleCreateLead}
+            onLeadFieldChange={handleLeadFieldChange}
+            leads={leads}
+            isLoading={isLoading}
+            errorMessage={errorMessage}
+            statusErrorMessage={statusErrorMessage}
+            isUpdatingStatusId={isUpdatingStatusId}
+            onUpdateStatus={handleUpdateStatus}
+            onRefreshLeads={loadLeads}
+          />
+        </Suspense>
       )
     }
 
     if (activeView === 'dashboard') {
       return (
-        <DashboardSection
-          leads={leads}
-          metrics={metrics}
-          isLoading={isLoadingMetrics}
-          errorMessage={metricsErrorMessage}
-          onRefresh={loadMetrics}
-        />
+        <Suspense fallback={renderSectionFallback('Carregando dashboard...')}>
+          <DashboardSection
+            leads={leads}
+            metrics={metrics}
+            isLoading={isLoadingMetrics}
+            errorMessage={metricsErrorMessage}
+            onRefresh={loadMetrics}
+          />
+        </Suspense>
       )
     }
 
     if (activeView === 'atividades') {
       return (
-        <ActivitiesSection
-          isLoadingActivities={isLoadingActivities}
-          activitiesErrorMessage={activitiesErrorMessage}
-          activities={activities}
-          onRefreshActivities={loadActivities}
-          formatDateTime={formatDateTime}
-        />
+        <Suspense fallback={renderSectionFallback('Carregando atividades...')}>
+          <ActivitiesSection
+            isLoadingActivities={isLoadingActivities}
+            activitiesErrorMessage={activitiesErrorMessage}
+            activities={activities}
+            onRefreshActivities={loadActivities}
+            formatDateTime={formatDateTime}
+          />
+        </Suspense>
       )
     }
 
     if (activeView === 'metricas') {
       return (
-        <MetricsSection
-          isLoading={isLoadingMetrics}
-          errorMessage={metricsErrorMessage}
-          metrics={metrics}
-          onRefresh={loadMetrics}
-        />
+        <Suspense fallback={renderSectionFallback('Carregando métricas...')}>
+          <MetricsSection
+            isLoading={isLoadingMetrics}
+            errorMessage={metricsErrorMessage}
+            metrics={metrics}
+            onRefresh={loadMetrics}
+          />
+        </Suspense>
       )
     }
 
