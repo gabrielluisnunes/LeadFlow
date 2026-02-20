@@ -66,7 +66,12 @@ export function DashboardSection({
     <section className="dashboard-analytics">
       <div className="dashboard-analytics-header">
         <div>
-          <h2>📊 Visão do funil</h2>
+          <h2 className="title-with-emoji">
+            <span className="title-emoji" aria-hidden="true">
+              📊
+            </span>
+            <span>Visão do funil</span>
+          </h2>
           <p>Acompanhe evolução mensal e distribuição por status em tempo real.</p>
         </div>
 
@@ -82,26 +87,51 @@ export function DashboardSection({
         <>
           <div className="dashboard-analytics-kpis">
             <article className="dashboard-analytics-kpi">
-              <small>🚀 Total de leads</small>
+              <small className="label-with-emoji">
+                <span className="title-emoji" aria-hidden="true">
+                  🚀
+                </span>
+                <span>Total de leads</span>
+              </small>
               <strong>{totalLeads}</strong>
             </article>
             <article className="dashboard-analytics-kpi">
-              <small>🎯 Taxa de conversão</small>
+              <small className="label-with-emoji">
+                <span className="title-emoji" aria-hidden="true">
+                  🎯
+                </span>
+                <span>Taxa de conversão</span>
+              </small>
               <strong>{conversionRate}%</strong>
             </article>
             <article className="dashboard-analytics-kpi">
-              <small>💬 Em contato</small>
+              <small className="label-with-emoji">
+                <span className="title-emoji" aria-hidden="true">
+                  💬
+                </span>
+                <span>Em contato</span>
+              </small>
               <strong>{statusSource.CONTACTED}</strong>
             </article>
             <article className="dashboard-analytics-kpi">
-              <small>🏆 Convertidos</small>
+              <small className="label-with-emoji">
+                <span className="title-emoji" aria-hidden="true">
+                  🏆
+                </span>
+                <span>Convertidos</span>
+              </small>
               <strong>{statusSource.WON}</strong>
             </article>
           </div>
 
           <div className="dashboard-analytics-grid">
             <article className="dashboard-chart-card">
-              <h3>📈 Leads por mês</h3>
+              <h3 className="title-with-emoji">
+                <span className="title-emoji" aria-hidden="true">
+                  📈
+                </span>
+                <span>Leads por mês</span>
+              </h3>
               <div className="dashboard-chart-area">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthlyLeadsData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -116,7 +146,12 @@ export function DashboardSection({
             </article>
 
             <article className="dashboard-chart-card">
-              <h3>🥧 Distribuição por status</h3>
+              <h3 className="title-with-emoji">
+                <span className="title-emoji" aria-hidden="true">
+                  🥧
+                </span>
+                <span>Distribuição por status</span>
+              </h3>
               <div className="dashboard-chart-area">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>

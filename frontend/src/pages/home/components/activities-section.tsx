@@ -32,7 +32,12 @@ export function ActivitiesSection({
 }: ActivitiesSectionProps) {
   return (
     <section className="list-section">
-      <h2>📝 Atividades</h2>
+      <h2 className="title-with-emoji">
+        <span className="title-emoji" aria-hidden="true">
+          📝
+        </span>
+        <span>Atividades</span>
+      </h2>
 
       {isLoadingActivities ? <p>Carregando atividades...</p> : null}
       {!isLoadingActivities && activitiesErrorMessage ? (

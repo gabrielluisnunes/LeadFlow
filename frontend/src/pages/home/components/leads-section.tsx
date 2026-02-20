@@ -68,7 +68,12 @@ export function LeadsSection({
       <div className="leads-top-grid">
         <article className="leads-panel">
           <header className="leads-panel-header">
-            <h2>🧲 Novo lead</h2>
+            <h2 className="title-with-emoji">
+              <span className="title-emoji" aria-hidden="true">
+                🧲
+              </span>
+              <span>Novo lead</span>
+            </h2>
             <p>Preencha os dados para cadastrar rapidamente.</p>
           </header>
 
@@ -124,7 +129,12 @@ export function LeadsSection({
 
         <aside className="leads-panel leads-summary-panel">
           <header className="leads-panel-header">
-            <h2>📌 Resumo</h2>
+            <h2 className="title-with-emoji">
+              <span className="title-emoji" aria-hidden="true">
+                📌
+              </span>
+              <span>Resumo</span>
+            </h2>
             <p>Visão rápida do funil de leads.</p>
           </header>
 
@@ -163,7 +173,12 @@ export function LeadsSection({
 
       <article className="leads-panel">
         <header className="leads-panel-header">
-          <h2>📋 Leads cadastrados</h2>
+          <h2 className="title-with-emoji">
+            <span className="title-emoji" aria-hidden="true">
+              📋
+            </span>
+            <span>Leads cadastrados</span>
+          </h2>
           <p>Gerencie status e acompanhe os contatos em andamento.</p>
         </header>
 

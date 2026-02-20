@@ -15,7 +15,12 @@ export function MetricsSection({
 }: MetricsSectionProps) {
   return (
     <section className="list-section">
-      <h2>📊 Métricas</h2>
+      <h2 className="title-with-emoji">
+        <span className="title-emoji" aria-hidden="true">
+          📊
+        </span>
+        <span>Métricas</span>
+      </h2>
 
       {isLoading ? <p>Carregando métricas...</p> : null}
       {!isLoading && errorMessage ? <p className="form-error">{errorMessage}</p> : null}

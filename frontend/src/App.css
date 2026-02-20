@@ -60,6 +60,29 @@
   margin: 0 0 0.75rem;
 }
 
+.title-with-emoji,
+.label-with-emoji {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.title-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  min-width: 1.2rem;
+  background: transparent;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.title-with-emoji:hover .title-emoji,
+.label-with-emoji:hover .title-emoji {
+  transform: scale(1.06);
+  filter: drop-shadow(0 0 6px rgba(59, 109, 246, 0.55));
+}
+
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
