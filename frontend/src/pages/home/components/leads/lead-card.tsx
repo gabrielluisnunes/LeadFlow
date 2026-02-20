@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Lead, LeadStatus } from '../../../../modules/leads/api'
-import { LeadStatusBadge } from './lead-status-badge'
+import { StatusBadge } from '../../../../components/status-badge'
 
 interface LeadCardProps {
   lead: Lead
@@ -44,7 +44,7 @@ export function LeadCard({
         </button>
 
         <div className="lead-v2-right">
-          <LeadStatusBadge status={lead.status} />
+          <StatusBadge status={lead.status} />
           <button type="button" className="lead-v2-open-action" onClick={() => onToggle(lead.id)}>
             {isExpanded ? 'Fechar' : 'Abrir'}
           </button>

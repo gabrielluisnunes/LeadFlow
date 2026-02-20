@@ -13,6 +13,7 @@ import {
   Users
 } from 'lucide-react'
 import { signOut } from '../modules/auth/session'
+import { getToken } from '../lib/token-storage'
 import { useApiErrorHandler } from '../hooks/use-api-error-handler'
 import {
   addLeadNote,
@@ -24,6 +25,7 @@ import {
   type LeadStatus,
   type UpdateLeadInput
 } from '../modules/leads/api'
+import { formatDateBR, parseDateTimeBRToIso } from '../lib/format-date-br'
 import {
   listOverdueFollowUps,
   listTodayFollowUps,
@@ -240,29 +242,6 @@ export function HomePage() {
     setFormData((current) => ({ ...current, [field]: value }))
   }
 
-  function parseBrDateToIso(dateValue: string) {
-    const trimmed = dateValue.trim()
-
-    if (!trimmed) {
-      return undefined
-    }
-
-    const match = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
-
-    if (!match) {
-      return undefined
-    }
-
-    const [, day, month, year] = match
-    const isoCandidate = new Date(`${year}-${month}-${day}T12:00:00`)
-
-    if (Number.isNaN(isoCandidate.getTime())) {
-      return undefined
-    }
-
-    return isoCandidate.toISOString()
-  }
-
   async function handleCreateLead(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setCreateErrorMessage('')
@@ -279,7 +258,7 @@ export function HomePage() {
       if (formData.observation.trim()) {
         await addLeadNote(createdLead.id, {
           content: formData.observation.trim(),
-          createdAt: parseBrDateToIso(formData.observationDateTime)
+          createdAt: parseDateTimeBRToIso(formData.observationDateTime)
         })
       }
 
@@ -327,9 +306,20 @@ export function HomePage() {
   async function handleUpdateStatus(leadId: string, status: LeadStatus) {
     setStatusErrorMessage('')
     setIsUpdatingStatusId(leadId)
+    const normalizedStatus = String(status).toUpperCase() as LeadStatus
+
+    console.log('enviando status:', normalizedStatus)
+    console.log('leadId:', leadId)
+    console.log('[LeadFlow] updateLeadStatus request', {
+      endpoint: `/leads/${leadId}/status`,
+      method: 'PATCH',
+      hasToken: Boolean(getToken()),
+      body: { status: normalizedStatus }
+    })
 
     try {
-      const updatedLead = await updateLeadStatus(leadId, status)
+      const updatedLead = await updateLeadStatus(leadId, normalizedStatus)
+      console.log('[LeadFlow] updateLeadStatus success', updatedLead)
 
       setLeads((current) =>
         current.map((lead) => (lead.id === updatedLead.id ? updatedLead : lead))
@@ -337,6 +327,12 @@ export function HomePage() {
 
       await loadMetrics()
     } catch (error) {
+      console.error('[LeadFlow] updateLeadStatus error', {
+        endpoint: `/leads/${leadId}/status`,
+        method: 'PATCH',
+        body: { status: normalizedStatus },
+        error
+      })
       handleApiError(error, 'Não foi possível atualizar o status do lead', setStatusErrorMessage)
     } finally {
       setIsUpdatingStatusId(null)
@@ -344,7 +340,7 @@ export function HomePage() {
   }
 
   function formatDateTime(value: string) {
-    return new Date(value).toLocaleString('pt-BR')
+    return formatDateBR(value)
   }
 
   const totalOpenFollowUps = todayFollowUps.length + overdueFollowUps.length + upcomingFollowUps.length

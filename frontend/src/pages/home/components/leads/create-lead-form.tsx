@@ -1,4 +1,5 @@
 import type { FormEvent } from 'react'
+import { maskDateTimeBRInput } from '../../../../lib/format-date-br'
 
 const sourceOptions = ['Instagram', 'Facebook', 'WhatsApp', 'Email'] as const
 
@@ -22,20 +23,6 @@ interface CreateLeadFormProps {
   onLeadFieldChange: (field: keyof LeadFormData, value: string) => void
   onPhoneBlur: () => void
   formatPhoneForDisplay: (value: string) => string
-}
-
-function formatDateInput(value: string) {
-  const digits = value.replace(/\D/g, '').slice(0, 8)
-
-  if (digits.length <= 2) {
-    return digits
-  }
-
-  if (digits.length <= 4) {
-    return `${digits.slice(0, 2)}/${digits.slice(2)}`
-  }
-
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
 }
 
 export function CreateLeadForm({
@@ -162,11 +149,11 @@ export function CreateLeadForm({
             type="text"
             value={formData.observationDateTime}
             onChange={(event) =>
-              onLeadFieldChange('observationDateTime', formatDateInput(event.target.value))
+              onLeadFieldChange('observationDateTime', maskDateTimeBRInput(event.target.value))
             }
             inputMode="numeric"
-            maxLength={10}
-            placeholder="dd/mm/aaaa"
+            maxLength={16}
+            placeholder="dd/mm/aaaa hh:mm"
           />
         </label>
 

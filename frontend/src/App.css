@@ -447,7 +447,7 @@
 
 .dashboard-status-legend li {
   display: grid;
-  grid-template-columns: 12px 1fr auto;
+  grid-template-columns: 12px auto 1fr;
   align-items: center;
   gap: 0.5rem;
 }
@@ -458,12 +458,40 @@
   border-radius: 999px;
 }
 
-.dashboard-status-legend li small {
-  color: #6c7391;
-}
-
 .dashboard-status-legend li strong {
   color: #2d3557;
+  justify-self: end;
+}
+
+.status-badge {
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.status-badge-new {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.status-badge-contacted {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-badge-won {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge-lost {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .dashboard-empty {

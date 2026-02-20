@@ -10,8 +10,9 @@ import {
   XAxis,
   YAxis
 } from 'recharts'
-import type { Lead } from '../../../modules/leads/api'
+import type { Lead, LeadStatus } from '../../../modules/leads/api'
 import type { LeadsOverviewMetrics } from '../../../modules/metrics/api'
+import { StatusBadge } from '../../../components/status-badge'
 
 interface DashboardSectionProps {
   leads: Lead[]
@@ -52,15 +53,17 @@ export function DashboardSection({
     metrics?.conversaionRate ??
     (totalLeads > 0 ? Number(((statusSource.WON / totalLeads) * 100).toFixed(1)) : 0)
 
-  const statusPieData = [
-    { name: 'Novos', value: statusSource.NEW },
-    { name: 'Em contato', value: statusSource.CONTACTED },
-    { name: 'Convertidos', value: statusSource.WON },
-    { name: 'Perdidos', value: statusSource.LOST }
+  const statusPieData: Array<{ key: LeadStatus; name: string; value: number }> = [
+    { key: 'NEW', name: 'Novos', value: statusSource.NEW },
+    { key: 'CONTACTED', name: 'Em contato', value: statusSource.CONTACTED },
+    { key: 'WON', name: 'Convertidos', value: statusSource.WON },
+    { key: 'LOST', name: 'Perdidos', value: statusSource.LOST }
   ]
 
   const hasPieData = statusPieData.some((item) => item.value > 0)
-  const pieFallbackData = hasPieData ? statusPieData : [{ name: 'Sem dados', value: 1 }]
+  const pieFallbackData = hasPieData
+    ? statusPieData
+    : [{ key: 'NEW' as LeadStatus, name: 'Sem dados', value: 1 }]
 
   return (
     <section className="dashboard-analytics">
@@ -183,7 +186,7 @@ export function DashboardSection({
                 {statusPieData.map((item, index) => (
                   <li key={item.name}>
                     <span style={{ backgroundColor: pieColors[index % pieColors.length] }} aria-hidden="true" />
-                    <small>{item.name}</small>
+                    <StatusBadge status={item.key} />
                     <strong>{item.value}</strong>
                   </li>
                 ))}

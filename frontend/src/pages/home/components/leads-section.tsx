@@ -8,6 +8,7 @@ import {
   type LeadStatus,
   type UpdateLeadInput
 } from '../../../modules/leads/api'
+import { formatDateBR, maskDateTimeBRInput, parseDateTimeBRToIso } from '../../../lib/format-date-br'
 import { CreateLeadForm } from './leads/create-lead-form'
 import { LeadCard } from './leads/lead-card'
 import { LeadsFilters } from './leads/leads-filters'
@@ -128,11 +129,11 @@ export function LeadsSection({
       : 'OTHER'
 
   function formatLeadDate(date: string) {
-    return new Date(date).toLocaleDateString('pt-BR')
+    return formatDateBR(date)
   }
 
   function formatDateTime(value: string) {
-    return new Date(value).toLocaleString('pt-BR')
+    return formatDateBR(value)
   }
 
   async function handleOpenLead(leadId: string) {
@@ -225,7 +226,7 @@ export function LeadsSection({
     try {
       await addLeadNote(selectedLeadDetails.id, {
         content: newNoteContent.trim(),
-        createdAt: newNoteDateTime ? new Date(newNoteDateTime).toISOString() : undefined
+        createdAt: parseDateTimeBRToIso(newNoteDateTime)
       })
 
       const refreshed = await getLeadDetails(selectedLeadDetails.id)
@@ -444,9 +445,14 @@ export function LeadsSection({
                             <label>
                               Data e hora (opcional)
                               <input
-                                type="datetime-local"
+                                type="text"
                                 value={newNoteDateTime}
-                                onChange={(event) => setNewNoteDateTime(event.target.value)}
+                                onChange={(event) =>
+                                  setNewNoteDateTime(maskDateTimeBRInput(event.target.value))
+                                }
+                                inputMode="numeric"
+                                maxLength={16}
+                                placeholder="dd/mm/aaaa hh:mm"
                               />
                             </label>
 

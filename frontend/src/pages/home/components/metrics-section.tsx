@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { Lead, LeadStatus } from '../../../modules/leads/api'
 import type { LeadsOverviewMetrics } from '../../../modules/metrics/api'
+import { StatusBadge } from '../../../components/status-badge'
 
 type PeriodFilter = '7d' | '30d' | '90d' | 'all'
 
@@ -60,27 +61,23 @@ export function MetricsSection({
 
   const statusData = [
     {
-      key: 'NEW',
+      key: 'NEW' as LeadStatus,
       label: 'Novos',
-      emoji: '🆕',
       value: periodFilter === 'all' && metrics ? metrics.byStatus.NEW : leadsByStatus.NEW
     },
     {
-      key: 'CONTACTED',
+      key: 'CONTACTED' as LeadStatus,
       label: 'Em contato',
-      emoji: '💬',
       value: periodFilter === 'all' && metrics ? metrics.byStatus.CONTACTED : leadsByStatus.CONTACTED
     },
     {
-      key: 'WON',
+      key: 'WON' as LeadStatus,
       label: 'Convertidos',
-      emoji: '🏆',
       value: periodFilter === 'all' && metrics ? metrics.byStatus.WON : leadsByStatus.WON
     },
     {
-      key: 'LOST',
+      key: 'LOST' as LeadStatus,
       label: 'Perdidos',
-      emoji: '📉',
       value: periodFilter === 'all' && metrics ? metrics.byStatus.LOST : leadsByStatus.LOST
     }
   ]
@@ -180,9 +177,7 @@ export function MetricsSection({
                 return (
                   <article className="metrics-status-item" key={status.key}>
                     <div className="metrics-status-header">
-                      <span>
-                        {status.emoji} {status.label}
-                      </span>
+                      <StatusBadge status={status.key} />
                       <strong>
                         {status.value} ({percentage}%)
                       </strong>
