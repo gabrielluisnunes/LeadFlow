@@ -15,11 +15,14 @@ import {
 import { signOut } from '../modules/auth/session'
 import { useApiErrorHandler } from '../hooks/use-api-error-handler'
 import {
+  addLeadNote,
   createLead,
+  updateLead,
   listLeads,
   updateLeadStatus,
   type Lead,
-  type LeadStatus
+  type LeadStatus,
+  type UpdateLeadInput
 } from '../modules/leads/api'
 import {
   listOverdueFollowUps,
@@ -61,6 +64,8 @@ interface LeadFormData {
   phone: string
   email: string
   source: string
+  observation: string
+  observationDateTime: string
 }
 
 export function HomePage() {
@@ -94,7 +99,9 @@ export function HomePage() {
     name: '',
     phone: '',
     email: '',
-    source: ''
+    source: '',
+    observation: '',
+    observationDateTime: ''
   })
 
   const [profileName, setProfileName] = useState('LeadFlow CRM')
@@ -239,26 +246,56 @@ export function HomePage() {
     setIsCreating(true)
 
     try {
-      await createLead({
+      const createdLead = await createLead({
         name: formData.name,
         phone: formData.phone,
         email: formData.email || undefined,
         source: formData.source || undefined
       })
 
+      if (formData.observation.trim()) {
+        await addLeadNote(createdLead.id, {
+          content: formData.observation.trim(),
+          createdAt: formData.observationDateTime
+            ? new Date(formData.observationDateTime).toISOString()
+            : undefined
+        })
+      }
+
       setFormData({
         name: '',
         phone: '',
         email: '',
-        source: ''
+        source: '',
+        observation: '',
+        observationDateTime: ''
       })
 
       await loadLeads()
       await loadMetrics()
+      await loadActivities()
     } catch (error) {
       handleApiError(error, 'Não foi possível criar o lead', setCreateErrorMessage)
     } finally {
       setIsCreating(false)
+    }
+  }
+
+  async function handleUpdateLead(leadId: string, input: UpdateLeadInput) {
+    setStatusErrorMessage('')
+    setIsUpdatingStatusId(leadId)
+
+    try {
+      const updatedLead = await updateLead(leadId, input)
+
+      setLeads((current) =>
+        current.map((lead) => (lead.id === updatedLead.id ? updatedLead : lead))
+      )
+    } catch (error) {
+      handleApiError(error, 'Não foi possível atualizar o lead', setStatusErrorMessage)
+      throw error
+    } finally {
+      setIsUpdatingStatusId(null)
     }
   }
 
@@ -374,6 +411,7 @@ export function HomePage() {
             statusErrorMessage={statusErrorMessage}
             isUpdatingStatusId={isUpdatingStatusId}
             onUpdateStatus={handleUpdateStatus}
+            onUpdateLead={handleUpdateLead}
             onRefreshLeads={loadLeads}
           />
         </Suspense>

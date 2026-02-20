@@ -315,13 +315,46 @@
 .leads-form label {
   font-weight: 600;
   color: #3d4568;
+  grid-column: 1 / -1;
 }
 
-.leads-form input {
+.leads-form .leads-half {
+  grid-column: span 1;
+}
+
+.leads-form input,
+.leads-form select {
   border: 1px solid #d7dced;
   border-radius: 8px;
   padding: 0.55rem 0.65rem;
   color: #2d3557;
+  background: #fff;
+}
+
+.leads-form textarea {
+  border: 1px solid #d7dced;
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  color: #2d3557;
+  background: #fff;
+  resize: vertical;
+  min-height: 78px;
+}
+
+.leads-form .field-help {
+  margin: -0.2rem 0 0;
+  font-size: 0.82rem;
+  color: #7a819b;
+  grid-column: 1 / -1;
+}
+
+.leads-form .field-help.field-help-error {
+  color: #b42318;
+}
+
+.leads-form .input-invalid {
+  border-color: #e3574d;
+  background: #fff8f7;
 }
 
 .dashboard-analytics {
@@ -444,13 +477,6 @@
   border-radius: 10px;
 }
 
-.leads-form label:nth-of-type(1),
-.leads-form label:nth-of-type(2) {
-  grid-column: span 1;
-}
-
-.leads-form label:nth-of-type(3),
-.leads-form label:nth-of-type(4),
 .leads-form .form-error,
 .leads-form .leads-primary-action {
   grid-column: 1 / -1;
@@ -572,6 +598,24 @@
   gap: 0.75rem;
 }
 
+.lead-card-open {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+  text-align: left;
+  width: 100%;
+}
+
+.lead-card-open small {
+  color: #3b6df6;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .lead-card-main h3 {
   margin: 0;
   color: #2d3557;
@@ -636,6 +680,73 @@
   border: 1px solid #d7dced;
   border-radius: 8px;
   background: #fff;
+}
+
+.lead-card-item.expanded {
+  border-color: #cfd8f1;
+  background: #fbfcff;
+}
+
+.lead-details-panel {
+  border-top: 1px solid #e6e9f5;
+  padding-top: 0.8rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.lead-edit-form,
+.lead-note-form {
+  gap: 0.65rem;
+}
+
+.lead-edit-form h4,
+.lead-notes-section h4 {
+  margin: 0;
+  color: #2d3557;
+}
+
+.lead-edit-form textarea,
+.lead-note-form textarea,
+.lead-edit-form input,
+.lead-note-form input,
+.lead-edit-form select {
+  border: 1px solid #d7dced;
+  border-radius: 8px;
+  padding: 0.5rem 0.62rem;
+  background: #fff;
+}
+
+.lead-note-form textarea {
+  resize: vertical;
+}
+
+.lead-notes-section {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.lead-notes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.lead-notes-list li {
+  border: 1px solid #e6e9f5;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.65rem;
+}
+
+.lead-notes-list li p {
+  margin: 0 0 0.3rem;
+  color: #2d3557;
+}
+
+.lead-notes-list li small {
+  color: #7a819b;
 }
 
 .leads-empty-state {

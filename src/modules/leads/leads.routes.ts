@@ -1,6 +1,11 @@
 import { FastifyInstance } from "fastify";
 import { LeadsService } from "./leads.service.js";
-import { createLeadSchema, updateLeadStatusSchema } from "./leads.schemas.js"; 
+import {
+    createLeadNoteSchema,
+    createLeadSchema,
+    updateLeadSchema,
+    updateLeadStatusSchema
+} from "./leads.schemas.js"; 
 
 export async function leadsRoutes(app: FastifyInstance) {
     const leadsService = new LeadsService();
@@ -48,5 +53,52 @@ export async function leadsRoutes(app: FastifyInstance) {
             data: lead
         }
     })
+
+        app.get('/:leadId', async (request) => {
+            const { leadId } = request.params as { leadId: string }
+
+            const workspaceId = request.user.workspaceId
+            const lead = await leadsService.getById(workspaceId, leadId)
+
+            return {
+                data: lead
+            }
+        })
+
+        app.patch('/:leadId', async (request) => {
+            const { leadId } = request.params as { leadId: string }
+            const body = updateLeadSchema.parse(request.body)
+
+            const workspaceId = request.user.workspaceId
+            const lead = await leadsService.update({
+                workspaceId,
+                leadId,
+                ...body
+            })
+
+            return {
+                data: lead
+            }
+        })
+
+        app.post('/:leadId/notes', async (request, reply) => {
+            const { leadId } = request.params as { leadId: string }
+            const body = createLeadNoteSchema.parse(request.body)
+
+            const workspaceId = request.user.workspaceId
+            const authorId = request.user.userId
+
+            const note = await leadsService.addNote({
+                workspaceId,
+                leadId,
+                authorId,
+                content: body.content,
+                createdAt: body.createdAt ? new Date(body.createdAt) : undefined
+            })
+
+            return reply.code(201).send({
+                data: note
+            })
+        })
 
     }

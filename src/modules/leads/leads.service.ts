@@ -11,6 +11,23 @@ interface CreateLeadInput {
   source?: string
 }
 
+interface UpdateLeadInput {
+  workspaceId: string
+  leadId: string
+  name: string
+  phone: string
+  email?: string
+  source?: string
+}
+
+interface CreateLeadNoteInput {
+  workspaceId: string
+  leadId: string
+  authorId: string
+  content: string
+  createdAt?: Date
+}
+
 export class LeadsService {
 
   private activities = new ActivitiesService()
@@ -50,6 +67,86 @@ export class LeadsService {
     })
 
     return leads
+  }
+
+  async getById(workspaceId: string, leadId: string) {
+    const lead = await prisma.lead.findFirst({
+      where: {
+        id: leadId,
+        workspaceId
+      },
+      include: {
+        notes: {
+          orderBy: {
+            createdAt: 'desc'
+          },
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            authorId: true
+          }
+        }
+      }
+    })
+
+    if (!lead) {
+      throw new NotFoundError('Lead não encontrado')
+    }
+
+    return lead
+  }
+
+  async update(data: UpdateLeadInput) {
+    const lead = await prisma.lead.findFirst({
+      where: {
+        id: data.leadId,
+        workspaceId: data.workspaceId
+      }
+    })
+
+    if (!lead) {
+      throw new NotFoundError('Lead não encontrado')
+    }
+
+    const updated = await prisma.lead.update({
+      where: {
+        id: lead.id
+      },
+      data: {
+        name: data.name,
+        phone: data.phone,
+        email: data.email,
+        source: data.source
+      }
+    })
+
+    return updated
+  }
+
+  async addNote(data: CreateLeadNoteInput) {
+    const lead = await prisma.lead.findFirst({
+      where: {
+        id: data.leadId,
+        workspaceId: data.workspaceId
+      }
+    })
+
+    if (!lead) {
+      throw new NotFoundError('Lead não encontrado')
+    }
+
+    const note = await prisma.leadNote.create({
+      data: {
+        workspaceId: data.workspaceId,
+        leadId: data.leadId,
+        authorId: data.authorId,
+        content: data.content,
+        createdAt: data.createdAt
+      }
+    })
+
+    return note
   }
 
   async updateStatus(params: {
