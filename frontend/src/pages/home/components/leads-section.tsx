@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { Lead, LeadStatus } from '../../../modules/leads/api'
 
@@ -58,6 +59,26 @@ export function LeadsSection({
       LOST: 0
     } satisfies Record<LeadStatus, number>
   )
+
+  const [searchValue, setSearchValue] = useState('')
+  const [statusFilter, setStatusFilter] = useState<LeadStatus | 'ALL'>('ALL')
+
+  const filteredLeads = useMemo(() => {
+    const normalizedSearch = searchValue.trim().toLowerCase()
+
+    return leads.filter((lead) => {
+      const matchesStatus = statusFilter === 'ALL' || lead.status === statusFilter
+
+      if (!normalizedSearch) {
+        return matchesStatus
+      }
+
+      const matchesSearch =
+        lead.name.toLowerCase().includes(normalizedSearch) || lead.phone.includes(normalizedSearch)
+
+      return matchesStatus && matchesSearch
+    })
+  }, [leads, searchValue, statusFilter])
 
   function formatLeadDate(date: string) {
     return new Date(date).toLocaleDateString('pt-BR')
@@ -182,6 +203,45 @@ export function LeadsSection({
           <p>Gerencie status e acompanhe os contatos em andamento.</p>
         </header>
 
+        <div className="leads-filters">
+          <label className="leads-filter-field">
+            Buscar
+            <input
+              type="search"
+              placeholder="Nome ou telefone"
+              value={searchValue}
+              onChange={(event) => setSearchValue(event.target.value)}
+            />
+          </label>
+
+          <label className="leads-filter-field">
+            Status
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as LeadStatus | 'ALL')}
+            >
+              <option value="ALL">Todos</option>
+              {leadStatusOptions.map((option) => (
+                <option key={option} value={option}>
+                  {leadStatusLabelMap[option]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button
+            type="button"
+            className="leads-clear-filters"
+            onClick={() => {
+              setSearchValue('')
+              setStatusFilter('ALL')
+            }}
+            disabled={!searchValue && statusFilter === 'ALL'}
+          >
+            Limpar filtros
+          </button>
+        </div>
+
         {isLoading ? <p>Carregando leads...</p> : null}
         {!isLoading && errorMessage ? <p className="form-error">{errorMessage}</p> : null}
         {!isLoading && !errorMessage && statusErrorMessage ? (
@@ -189,9 +249,9 @@ export function LeadsSection({
         ) : null}
 
         {!isLoading && !errorMessage ? (
-          leads.length > 0 ? (
+          filteredLeads.length > 0 ? (
             <ul className="lead-cards-list">
-              {leads.map((lead) => (
+              {filteredLeads.map((lead) => (
                 <li key={lead.id} className="lead-card-item">
                   <div className="lead-card-main">
                     <div>
@@ -234,7 +294,11 @@ export function LeadsSection({
               ))}
             </ul>
           ) : (
-            <p className="leads-empty-state">Nenhum lead cadastrado ainda.</p>
+            <p className="leads-empty-state">
+              {leads.length === 0
+                ? 'Nenhum lead cadastrado ainda.'
+                : 'Nenhum lead encontrado com os filtros aplicados.'}
+            </p>
           )
         ) : null}
       </article>
