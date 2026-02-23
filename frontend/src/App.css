@@ -485,7 +485,7 @@
 
 .dashboard-status-legend li {
   display: grid;
-  grid-template-columns: 12px auto 1fr auto;
+  grid-template-columns: 12px minmax(150px, 1fr) auto;
   align-items: center;
   gap: 0.65rem;
   border: 1px solid #e6e9f5;
@@ -506,24 +506,36 @@
   font-size: 1rem;
 }
 
-.dashboard-legend-left {
-  display: inline-flex;
-  align-items: center;
+.dashboard-legend-content {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 150px;
+}
+
+.dashboard-status-label {
+  color: #2d3557;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .dashboard-status-legend li small {
   color: #6c7391;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .status-badge {
   border-radius: 999px;
-  padding: 0.25rem 0.75rem;
+  padding: 0.34rem 0.78rem;
   font-size: 0.75rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.2;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   white-space: nowrap;
 }
 

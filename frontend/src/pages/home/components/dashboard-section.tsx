@@ -17,7 +17,6 @@ import {
 } from 'recharts'
 import type { Lead, LeadStatus } from '../../../modules/leads/api'
 import type { LeadsOverviewMetrics } from '../../../modules/metrics/api'
-import { StatusBadge } from '../../../components/status-badge'
 
 interface DashboardSectionProps {
   leads: Lead[]
@@ -29,6 +28,13 @@ interface DashboardSectionProps {
 
 const pieColors = ['#3b6df6', '#6f8ef8', '#29b36f', '#f06a63']
 type MonthlyChartType = 'bar' | 'line' | 'area'
+
+const statusLabelMap: Record<LeadStatus, string> = {
+  NEW: 'Novo',
+  CONTACTED: 'Em contato',
+  WON: 'Ganho',
+  LOST: 'Perdido'
+}
 
 export function DashboardSection({
   leads,
@@ -249,10 +255,10 @@ export function DashboardSection({
                 {pieLegendData.map((item) => (
                   <li key={item.name}>
                     <span style={{ backgroundColor: item.color }} aria-hidden="true" />
-                    <div className="dashboard-legend-left">
-                      <StatusBadge status={item.key} />
+                    <div className="dashboard-legend-content">
+                      <span className="dashboard-status-label">{statusLabelMap[item.key]}</span>
+                      <small>{item.percent}% do total</small>
                     </div>
-                    <small>{item.percent}% do total</small>
                     <strong>{item.value}</strong>
                   </li>
                 ))}
