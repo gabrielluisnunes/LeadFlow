@@ -1,8 +1,13 @@
+import { useState } from 'react'
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
+  Line,
+  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -23,6 +28,7 @@ interface DashboardSectionProps {
 }
 
 const pieColors = ['#3b6df6', '#6f8ef8', '#29b36f', '#f06a63']
+type MonthlyChartType = 'bar' | 'line' | 'area'
 
 export function DashboardSection({
   leads,
@@ -31,6 +37,7 @@ export function DashboardSection({
   errorMessage,
   onRefresh
 }: DashboardSectionProps) {
+  const [monthlyChartType, setMonthlyChartType] = useState<MonthlyChartType>('bar')
   const monthlyLeadsData = buildMonthlyLeads(leads)
 
   const statusSource =
@@ -65,16 +72,17 @@ export function DashboardSection({
     ? statusPieData
     : [{ key: 'NEW' as LeadStatus, name: 'Sem dados', value: 1 }]
 
+  const pieLegendData = statusPieData.map((item, index) => ({
+    ...item,
+    color: pieColors[index % pieColors.length],
+    percent: totalLeads > 0 ? Math.round((item.value / totalLeads) * 100) : 0
+  }))
+
   return (
     <section className="dashboard-analytics">
       <div className="dashboard-analytics-header">
         <div>
-          <h2 className="title-with-emoji">
-            <span className="title-emoji" aria-hidden="true">
-              📊
-            </span>
-            <span>Visão do funil</span>
-          </h2>
+          <h2>Visão do funil</h2>
           <p>Acompanhe evolução mensal e distribuição por status em tempo real.</p>
         </div>
 
@@ -129,32 +137,87 @@ export function DashboardSection({
 
           <div className="dashboard-analytics-grid">
             <article className="dashboard-chart-card">
-              <h3 className="title-with-emoji">
-                <span className="title-emoji" aria-hidden="true">
-                  📈
-                </span>
-                <span>Leads por mês</span>
-              </h3>
+              <div className="dashboard-chart-head">
+                <h3>Leads por mês</h3>
+                <div className="dashboard-chart-switch" role="tablist" aria-label="Tipo de gráfico mensal">
+                  <button
+                    type="button"
+                    className={monthlyChartType === 'bar' ? 'active' : ''}
+                    onClick={() => setMonthlyChartType('bar')}
+                  >
+                    Barras
+                  </button>
+                  <button
+                    type="button"
+                    className={monthlyChartType === 'line' ? 'active' : ''}
+                    onClick={() => setMonthlyChartType('line')}
+                  >
+                    Linha
+                  </button>
+                  <button
+                    type="button"
+                    className={monthlyChartType === 'area' ? 'active' : ''}
+                    onClick={() => setMonthlyChartType('area')}
+                  >
+                    Área
+                  </button>
+                </div>
+              </div>
+
               <div className="dashboard-chart-area">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyLeadsData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e6e9f5" />
-                    <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
-                    <Tooltip />
-                    <Bar dataKey="total" fill="#3b6df6" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {monthlyChartType === 'bar' ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={monthlyLeadsData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e6e9f5" />
+                      <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                      <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
+                      <Tooltip formatter={(value) => [`${value} lead(s)`, 'Total']} />
+                      <Bar dataKey="total" fill="#3b6df6" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : null}
+
+                {monthlyChartType === 'line' ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyLeadsData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e6e9f5" />
+                      <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                      <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
+                      <Tooltip formatter={(value) => [`${value} lead(s)`, 'Total']} />
+                      <Line
+                        type="monotone"
+                        dataKey="total"
+                        stroke="#3b6df6"
+                        strokeWidth={2.5}
+                        dot={{ r: 4, fill: '#3b6df6' }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : null}
+
+                {monthlyChartType === 'area' ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={monthlyLeadsData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e6e9f5" />
+                      <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                      <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
+                      <Tooltip formatter={(value) => [`${value} lead(s)`, 'Total']} />
+                      <Area
+                        type="monotone"
+                        dataKey="total"
+                        stroke="#3b6df6"
+                        fill="#dfe8ff"
+                        strokeWidth={2.2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : null}
               </div>
             </article>
 
             <article className="dashboard-chart-card">
-              <h3 className="title-with-emoji">
-                <span className="title-emoji" aria-hidden="true">
-                  🥧
-                </span>
-                <span>Distribuição por status</span>
-              </h3>
+              <h3>Distribuição por status</h3>
               <div className="dashboard-chart-area">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -173,7 +236,7 @@ export function DashboardSection({
                         />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip formatter={(value, name) => [`${value} lead(s)`, `${name}`]} />
                   </PieChart>
                 </ResponsiveContainer>
 
@@ -183,10 +246,13 @@ export function DashboardSection({
               </div>
 
               <ul className="dashboard-status-legend">
-                {statusPieData.map((item, index) => (
+                {pieLegendData.map((item) => (
                   <li key={item.name}>
-                    <span style={{ backgroundColor: pieColors[index % pieColors.length] }} aria-hidden="true" />
-                    <StatusBadge status={item.key} />
+                    <span style={{ backgroundColor: item.color }} aria-hidden="true" />
+                    <div className="dashboard-legend-left">
+                      <StatusBadge status={item.key} />
+                    </div>
+                    <small>{item.percent}% do total</small>
                     <strong>{item.value}</strong>
                   </li>
                 ))}
