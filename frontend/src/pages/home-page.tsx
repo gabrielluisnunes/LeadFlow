@@ -478,6 +478,7 @@ export function HomePage() {
             isLoadingActivities={isLoadingActivities}
             activitiesErrorMessage={activitiesErrorMessage}
             activities={activities}
+            leads={leads}
             onRefreshActivities={loadActivities}
             formatDateTime={formatDateTime}
           />

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Activity, ActivityType } from '../../../modules/activities/api'
+import type { Lead } from '../../../modules/leads/api'
 
 type PeriodFilter = '7d' | '30d' | '90d' | 'all'
 
@@ -7,8 +8,21 @@ interface ActivitiesSectionProps {
   isLoadingActivities: boolean
   activitiesErrorMessage: string
   activities: Activity[]
+  leads: Lead[]
   onRefreshActivities: () => void
   formatDateTime: (value: string) => string
+}
+
+function getLeadNameFromPayload(payload: unknown) {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+
+  if ('name' in payload && typeof payload.name === 'string') {
+    return payload.name
+  }
+
+  return null
 }
 
 function getActivityLabel(activity: Activity) {
@@ -67,6 +81,7 @@ export function ActivitiesSection({
   isLoadingActivities,
   activitiesErrorMessage,
   activities,
+  leads,
   onRefreshActivities,
   formatDateTime
 }: ActivitiesSectionProps) {
@@ -109,6 +124,10 @@ export function ActivitiesSection({
     return periodFilteredActivities.filter((item) => item.type === activeFilter)
   }, [periodFilteredActivities, activeFilter])
 
+  const leadNameById = useMemo(() => {
+    return new Map(leads.map((lead) => [lead.id, lead.name]))
+  }, [leads])
+
   const filterButtons: Array<{
     key: ActivityType | 'ALL'
     label: string
@@ -136,12 +155,7 @@ export function ActivitiesSection({
     <section className="activities-page">
       <header className="activities-header">
         <div>
-          <h2 className="title-with-emoji">
-            <span className="title-emoji" aria-hidden="true">
-              📝
-            </span>
-            <span>Atividades</span>
-          </h2>
+          <h2>Atividades</h2>
           <p>Monitore tudo que aconteceu no CRM e filtre rapidamente por tipo de ação.</p>
         </div>
 
@@ -246,7 +260,10 @@ export function ActivitiesSection({
                 <div className="activity-card-meta">
                   {activity.leadId ? (
                     <span>
-                      <strong>Lead:</strong> {activity.leadId.slice(0, 8)}...
+                      <strong>Lead:</strong>{' '}
+                      {leadNameById.get(activity.leadId) ||
+                        getLeadNameFromPayload(activity.payload) ||
+                        `${activity.leadId.slice(0, 8)}...`}
                     </span>
                   ) : (
                     <span>
