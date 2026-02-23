@@ -61,7 +61,17 @@ export function LeadCard({
           Status
           <select
             value={lead.status}
-            onChange={(event) => onUpdateStatus(lead.id, event.target.value as LeadStatus)}
+            onChange={(event) => {
+              const nextStatus = event.target.value as LeadStatus
+
+              console.log('[LeadFlow] status select changed', {
+                leadId: lead.id,
+                previousStatus: lead.status,
+                nextStatus
+              })
+
+              onUpdateStatus(lead.id, nextStatus)
+            }}
             disabled={isUpdatingStatusId === lead.id}
           >
             {leadStatusOptions.map((option) => (

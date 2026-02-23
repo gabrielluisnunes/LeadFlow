@@ -306,7 +306,21 @@ export function HomePage() {
   async function handleUpdateStatus(leadId: string, status: LeadStatus) {
     setStatusErrorMessage('')
     setIsUpdatingStatusId(leadId)
+
+    if (!leadId) {
+      setStatusErrorMessage('Lead inválido para atualização de status.')
+      setIsUpdatingStatusId(null)
+      return
+    }
+
     const normalizedStatus = String(status).toUpperCase() as LeadStatus
+    const allowedStatus: LeadStatus[] = ['NEW', 'CONTACTED', 'WON', 'LOST']
+
+    if (!allowedStatus.includes(normalizedStatus)) {
+      setStatusErrorMessage('Status inválido enviado para API.')
+      setIsUpdatingStatusId(null)
+      return
+    }
 
     console.log('enviando status:', normalizedStatus)
     console.log('leadId:', leadId)
@@ -321,11 +335,15 @@ export function HomePage() {
       const updatedLead = await updateLeadStatus(leadId, normalizedStatus)
       console.log('[LeadFlow] updateLeadStatus success', updatedLead)
 
+      if (!updatedLead?.id) {
+        throw new Error('Resposta inválida ao atualizar status do lead')
+      }
+
       setLeads((current) =>
         current.map((lead) => (lead.id === updatedLead.id ? updatedLead : lead))
       )
 
-      await loadMetrics()
+      await Promise.all([loadLeads(), loadMetrics()])
     } catch (error) {
       console.error('[LeadFlow] updateLeadStatus error', {
         endpoint: `/leads/${leadId}/status`,

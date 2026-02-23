@@ -18,7 +18,11 @@ export const app = Fastify({
 })
 
 await app.register(cors, {
-  origin: true
+  origin: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  maxAge: 86400
 })
 
 await app.register(jwt, {
