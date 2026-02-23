@@ -1672,6 +1672,13 @@
   gap: 0.1rem;
 }
 
+.lead-v2-name-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .lead-v2-open h4 {
   margin: 0;
   color: #202a4c;

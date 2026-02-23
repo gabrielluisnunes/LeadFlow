@@ -37,14 +37,16 @@ export function LeadCard({
       <div className="lead-v2-main">
         <button type="button" className="lead-v2-open" onClick={() => onToggle(lead.id)}>
           <div className="lead-v2-identity">
-            <h4>{lead.name}</h4>
+            <div className="lead-v2-name-row">
+              <h4>{lead.name}</h4>
+              <StatusBadge status={lead.status} />
+            </div>
             <p>{formatPhoneForDisplay(lead.phone)}</p>
             <small>{lead.email || 'Email não informado'}</small>
           </div>
         </button>
 
         <div className="lead-v2-right">
-          <StatusBadge status={lead.status} />
           <button type="button" className="lead-v2-open-action" onClick={() => onToggle(lead.id)}>
             {isExpanded ? 'Fechar' : 'Abrir'}
           </button>
