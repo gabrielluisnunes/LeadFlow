@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
 import {
   BarChart3,
+  Calendar,
   ChevronLeft,
   ClipboardList,
   Home,
@@ -28,9 +29,11 @@ import {
 } from '../modules/leads/api'
 import { formatDateBR, parseDateBRToIso } from '../lib/format-date-br'
 import {
+  createFollowUp,
   listOverdueFollowUps,
   listTodayFollowUps,
   listUpcomingFollowUps,
+  markFollowUpAsDone,
   type FollowUpWithLead
 } from '../modules/followups/api'
 import { listActivities, type Activity } from '../modules/activities/api'
@@ -60,7 +63,13 @@ const DashboardSection = lazy(() =>
   }))
 )
 
-type HomeView = 'inicio' | 'leads' | 'dashboard' | 'atividades' | 'metricas' | 'perfil'
+const FollowUpsSection = lazy(() =>
+  import('./home/components/followups-section').then((module) => ({
+    default: module.FollowUpsSection
+  }))
+)
+
+type HomeView = 'inicio' | 'leads' | 'dashboard' | 'followups' | 'atividades' | 'metricas' | 'perfil'
 
 interface LeadFormData {
   name: string
@@ -69,6 +78,11 @@ interface LeadFormData {
   source: string
   observation: string
   observationDateTime: string
+}
+
+interface FollowUpFormData {
+  leadId: string
+  scheduledAt: string
 }
 
 export function HomePage() {
@@ -88,7 +102,11 @@ export function HomePage() {
   const [todayFollowUps, setTodayFollowUps] = useState<FollowUpWithLead[]>([])
   const [overdueFollowUps, setOverdueFollowUps] = useState<FollowUpWithLead[]>([])
   const [upcomingFollowUps, setUpcomingFollowUps] = useState<FollowUpWithLead[]>([])
+  const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(true)
   const [followUpErrorMessage, setFollowUpErrorMessage] = useState('')
+  const [isCreatingFollowUp, setIsCreatingFollowUp] = useState(false)
+  const [createFollowUpErrorMessage, setCreateFollowUpErrorMessage] = useState('')
+  const [isMarkingDoneId, setIsMarkingDoneId] = useState<string | null>(null)
 
   const [metrics, setMetrics] = useState<LeadsOverviewMetrics | null>(null)
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true)
@@ -107,6 +125,11 @@ export function HomePage() {
     observationDateTime: ''
   })
 
+  const [followUpFormData, setFollowUpFormData] = useState<FollowUpFormData>({
+    leadId: '',
+    scheduledAt: ''
+  })
+
   const [profileName, setProfileName] = useState('LeadFlow CRM')
   const [profilePhoto, setProfilePhoto] = useState('')
   const [profileFeedback, setProfileFeedback] = useState('')
@@ -115,6 +138,7 @@ export function HomePage() {
     { key: 'inicio', label: 'Inicio', icon: Home },
     { key: 'leads', label: 'Leads', icon: Users },
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { key: 'followups', label: 'Follow-ups', icon: Calendar },
     { key: 'atividades', label: 'Atividades', icon: ClipboardList },
     { key: 'metricas', label: 'Metricas', icon: BarChart3 }
   ]
@@ -135,6 +159,7 @@ export function HomePage() {
 
   async function loadFollowUpsAgenda() {
     setFollowUpErrorMessage('')
+    setIsLoadingFollowUps(true)
 
     try {
       const [today, overdue, upcoming] = await Promise.all([
@@ -152,6 +177,8 @@ export function HomePage() {
         'Não foi possível carregar a agenda de follow-ups',
         setFollowUpErrorMessage
       )
+    } finally {
+      setIsLoadingFollowUps(false)
     }
   }
 
@@ -358,6 +385,56 @@ export function HomePage() {
     }
   }
 
+  function handleFollowUpFieldChange(field: keyof FollowUpFormData, value: string) {
+    setFollowUpFormData((current) => ({ ...current, [field]: value }))
+  }
+
+  async function handleCreateFollowUp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setCreateFollowUpErrorMessage('')
+
+    const scheduledAtIso = parseDateBRToIso(followUpFormData.scheduledAt)
+
+    if (!scheduledAtIso) {
+      setCreateFollowUpErrorMessage('Data inválida. Use o formato dd/mm/aaaa.')
+      return
+    }
+
+    setIsCreatingFollowUp(true)
+
+    try {
+      await createFollowUp({
+        leadId: followUpFormData.leadId,
+        scheduledAt: scheduledAtIso
+      })
+
+      setFollowUpFormData({
+        leadId: '',
+        scheduledAt: ''
+      })
+
+      await Promise.all([loadFollowUpsAgenda(), loadActivities()])
+    } catch (error) {
+      handleApiError(error, 'Não foi possível criar o follow-up', setCreateFollowUpErrorMessage)
+    } finally {
+      setIsCreatingFollowUp(false)
+    }
+  }
+
+  async function handleMarkFollowUpAsDone(followUpId: string) {
+    setFollowUpErrorMessage('')
+    setIsMarkingDoneId(followUpId)
+
+    try {
+      await markFollowUpAsDone(followUpId)
+      await Promise.all([loadFollowUpsAgenda(), loadActivities()])
+    } catch (error) {
+      handleApiError(error, 'Não foi possível concluir o follow-up', setFollowUpErrorMessage)
+    } finally {
+      setIsMarkingDoneId(null)
+    }
+  }
+
   function formatDateTime(value: string) {
     return formatDateBR(value)
   }
@@ -487,6 +564,30 @@ export function HomePage() {
       )
     }
 
+    if (activeView === 'followups') {
+      return (
+        <Suspense fallback={renderSectionFallback('Carregando seção de follow-ups...')}>
+          <FollowUpsSection
+            formData={followUpFormData}
+            leads={leads}
+            isCreatingFollowUp={isCreatingFollowUp}
+            createFollowUpErrorMessage={createFollowUpErrorMessage}
+            onCreateFollowUp={handleCreateFollowUp}
+            onFollowUpFieldChange={handleFollowUpFieldChange}
+            isLoadingFollowUps={isLoadingFollowUps}
+            followUpErrorMessage={followUpErrorMessage}
+            todayFollowUps={todayFollowUps}
+            overdueFollowUps={overdueFollowUps}
+            upcomingFollowUps={upcomingFollowUps}
+            isMarkingDoneId={isMarkingDoneId}
+            onMarkFollowUpAsDone={handleMarkFollowUpAsDone}
+            onRefreshAgenda={loadFollowUpsAgenda}
+            formatDateTime={formatDateTime}
+          />
+        </Suspense>
+      )
+    }
+
     if (activeView === 'metricas') {
       return (
         <Suspense fallback={renderSectionFallback('Carregando métricas...')}>
@@ -543,6 +644,7 @@ export function HomePage() {
     inicio: 'Inicio',
     leads: 'Leads',
     dashboard: 'Dashboard',
+    followups: 'Follow-ups',
     atividades: 'Atividades',
     metricas: 'Metricas',
     perfil: 'Perfil'
