@@ -1194,6 +1194,13 @@
   gap: 0.7rem;
 }
 
+.followups-all-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 220px auto;
+  gap: 0.55rem;
+  align-items: end;
+}
+
 .followups-all-search {
   display: grid;
   gap: 0.35rem;
@@ -1207,6 +1214,36 @@
   padding: 0.5rem 0.62rem;
   background: #fff;
   color: #2d3557;
+}
+
+.followups-all-sort {
+  display: grid;
+  gap: 0.35rem;
+  color: #495372;
+  font-weight: 600;
+}
+
+.followups-all-sort select {
+  border: 1px solid #d7dced;
+  border-radius: 8px;
+  padding: 0.5rem 0.62rem;
+  background: #fff;
+  color: #2d3557;
+}
+
+.followups-all-clear {
+  border: 1px solid #dbe1f3;
+  border-radius: 8px;
+  background: #f7f9ff;
+  color: #2f62f3;
+  font-weight: 600;
+  padding: 0.5rem 0.7rem;
+  min-height: 38px;
+}
+
+.followups-all-clear:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .followups-all-filters {
@@ -1357,6 +1394,10 @@
   }
 
   .followups-groups-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .followups-all-toolbar {
     grid-template-columns: 1fr;
   }
 
