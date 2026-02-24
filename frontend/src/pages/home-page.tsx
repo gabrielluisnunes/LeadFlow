@@ -501,37 +501,39 @@ export function HomePage() {
     }
 
     return (
-      <section className="list-section">
-        <h2>Perfil</h2>
+      <section className="list-section profile-section">
+        <div className="profile-panel">
+          <form className="auth-form profile-form" onSubmit={handleSaveProfile}>
+            <div className="profile-preview">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="Foto de perfil" />
+              ) : (
+                <div className="profile-placeholder">{profileName.charAt(0).toUpperCase()}</div>
+              )}
+            </div>
 
-        <form className="auth-form profile-form" onSubmit={handleSaveProfile}>
-          <div className="profile-preview">
-            {profilePhoto ? (
-              <img src={profilePhoto} alt="Foto de perfil" />
-            ) : (
-              <div className="profile-placeholder">{profileName.charAt(0).toUpperCase()}</div>
-            )}
-          </div>
+            <p className="profile-name">{profileName}</p>
 
-          <label>
-            Nome
-            <input
-              type="text"
-              value={profileName}
-              onChange={(event) => setProfileName(event.target.value)}
-              required
-            />
-          </label>
+            <label>
+              Nome
+              <input
+                type="text"
+                value={profileName}
+                onChange={(event) => setProfileName(event.target.value)}
+                required
+              />
+            </label>
 
-          <label>
-            Foto
-            <input type="file" accept="image/*" onChange={handleProfilePhotoChange} />
-          </label>
+            <label>
+              Foto
+              <input type="file" accept="image/*" onChange={handleProfilePhotoChange} />
+            </label>
 
-          {profileFeedback ? <p className="profile-feedback">{profileFeedback}</p> : null}
+            {profileFeedback ? <p className="profile-feedback">{profileFeedback}</p> : null}
 
-          <button type="submit">Salvar perfil</button>
-        </form>
+            <button type="submit">Salvar perfil</button>
+          </form>
+        </div>
       </section>
     )
   }
