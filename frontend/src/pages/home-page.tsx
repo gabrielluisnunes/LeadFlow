@@ -444,7 +444,7 @@ export function HomePage() {
         notes: ''
       })
 
-      await Promise.all([loadFollowUpsAgenda(), loadActivities()])
+      await Promise.all([loadFollowUpsAgenda(), loadActivities(), loadLeads(), loadMetrics()])
     } catch (error) {
       handleApiError(error, 'Não foi possível criar o follow-up', setCreateFollowUpErrorMessage)
     } finally {
@@ -458,7 +458,7 @@ export function HomePage() {
 
     try {
       await concludeFollowUp(followUpId)
-      await Promise.all([loadFollowUpsAgenda(), loadActivities()])
+      await Promise.all([loadFollowUpsAgenda(), loadActivities(), loadLeads(), loadMetrics()])
     } catch (error) {
       handleApiError(error, 'Não foi possível concluir o follow-up', setFollowUpErrorMessage)
     } finally {
@@ -478,7 +478,7 @@ export function HomePage() {
         scheduledAt: currentDate.toISOString()
       })
 
-      await Promise.all([loadFollowUpsAgenda(), loadActivities()])
+      await Promise.all([loadFollowUpsAgenda(), loadActivities(), loadLeads(), loadMetrics()])
     } catch (error) {
       handleApiError(error, 'Não foi possível reagendar o follow-up', setFollowUpErrorMessage)
     } finally {
