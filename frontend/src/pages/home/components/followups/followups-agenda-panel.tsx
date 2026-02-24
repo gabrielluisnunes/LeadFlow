@@ -1,11 +1,14 @@
 import type { FollowUpGroup } from './types'
+import type { FollowUpAction } from './types'
 
 interface FollowUpsAgendaPanelProps {
   groups: FollowUpGroup[]
   isLoadingFollowUps: boolean
   followUpErrorMessage: string
-  isMarkingDoneId: string | null
+  activeFollowUpAction: { followUpId: string; action: FollowUpAction } | null
   onMarkFollowUpAsDone: (followUpId: string) => void
+  onRescheduleFollowUp: (followUpId: string, currentScheduledAt: string) => void
+  onCancelFollowUp: (followUpId: string) => void
   onRefreshAgenda: () => void
   formatDateTime: (value: string) => string
 }
@@ -14,11 +17,25 @@ export function FollowUpsAgendaPanel({
   groups,
   isLoadingFollowUps,
   followUpErrorMessage,
-  isMarkingDoneId,
+  activeFollowUpAction,
   onMarkFollowUpAsDone,
+  onRescheduleFollowUp,
+  onCancelFollowUp,
   onRefreshAgenda,
   formatDateTime
 }: FollowUpsAgendaPanelProps) {
+  function getPriorityLabel(priority: string) {
+    if (priority === 'HIGH') {
+      return 'Alta'
+    }
+
+    if (priority === 'LOW') {
+      return 'Baixa'
+    }
+
+    return 'Média'
+  }
+
   return (
     <section className="followups-panel">
       <header className="followups-panel-header followups-panel-header-inline">
@@ -53,18 +70,66 @@ export function FollowUpsAgendaPanel({
                   {group.items.map((followUp) => (
                     <li key={followUp.id} className="followups-item">
                       <div className="followups-item-meta">
-                        <strong>{followUp.lead.name}</strong>
-                        <small>{formatDateTime(followUp.scheduledAt)}</small>
+                        <strong>{followUp.title}</strong>
+                        <small>
+                          Lead: {followUp.lead.name} · {formatDateTime(followUp.scheduledAt)}
+                        </small>
+
+                        <div className="followups-item-badges">
+                          <span className={`followups-priority followups-priority-${followUp.priority.toLowerCase()}`}>
+                            Prioridade {getPriorityLabel(followUp.priority)}
+                          </span>
+                        </div>
+
+                        {followUp.notes ? <p className="followups-notes">{followUp.notes}</p> : null}
                       </div>
 
-                      <button
-                        type="button"
-                        className="followups-item-action"
-                        onClick={() => onMarkFollowUpAsDone(followUp.id)}
-                        disabled={isMarkingDoneId === followUp.id}
-                      >
-                        {isMarkingDoneId === followUp.id ? 'Concluindo...' : 'Concluir'}
-                      </button>
+                      <div className="followups-item-actions">
+                        <button
+                          type="button"
+                          className="followups-item-action followups-item-action-success"
+                          onClick={() => onMarkFollowUpAsDone(followUp.id)}
+                          disabled={
+                            activeFollowUpAction?.followUpId === followUp.id &&
+                            activeFollowUpAction?.action === 'done'
+                          }
+                        >
+                          {activeFollowUpAction?.followUpId === followUp.id &&
+                          activeFollowUpAction?.action === 'done'
+                            ? 'Concluindo...'
+                            : 'Concluir'}
+                        </button>
+
+                        <button
+                          type="button"
+                          className="followups-item-action"
+                          onClick={() => onRescheduleFollowUp(followUp.id, followUp.scheduledAt)}
+                          disabled={
+                            activeFollowUpAction?.followUpId === followUp.id &&
+                            activeFollowUpAction?.action === 'reschedule'
+                          }
+                        >
+                          {activeFollowUpAction?.followUpId === followUp.id &&
+                          activeFollowUpAction?.action === 'reschedule'
+                            ? 'Reagendando...'
+                            : 'Reagendar +1d'}
+                        </button>
+
+                        <button
+                          type="button"
+                          className="followups-item-action followups-item-action-danger"
+                          onClick={() => onCancelFollowUp(followUp.id)}
+                          disabled={
+                            activeFollowUpAction?.followUpId === followUp.id &&
+                            activeFollowUpAction?.action === 'cancel'
+                          }
+                        >
+                          {activeFollowUpAction?.followUpId === followUp.id &&
+                          activeFollowUpAction?.action === 'cancel'
+                            ? 'Cancelando...'
+                            : 'Cancelar'}
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>

@@ -1044,6 +1044,16 @@
   background: #fff;
 }
 
+.followups-form textarea {
+  border: 1px solid #d7dced;
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  color: #2d3557;
+  background: #fff;
+  resize: vertical;
+  min-height: 74px;
+}
+
 .followups-primary-action {
   border: 0;
   border-radius: 9px;
@@ -1105,6 +1115,57 @@
   color: #7a819b;
 }
 
+.followups-item-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.followups-priority {
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.followups-priority-low {
+  color: #4b5563;
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.followups-priority-medium {
+  color: #1d4ed8;
+  background: #dbeafe;
+  border-color: #bfdbfe;
+}
+
+.followups-priority-high {
+  color: #b42318;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.followups-notes {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.followups-item-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+@media (max-width: 1280px) {
+  .followups-item-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 .followups-item-action {
   border: 1px solid #dbe1f3;
   border-radius: 8px;
@@ -1112,6 +1173,18 @@
   color: #2f62f3;
   font-weight: 600;
   padding: 0.38rem 0.55rem;
+}
+
+.followups-item-action-success {
+  border-color: #bce7cf;
+  background: #edf9f2;
+  color: #157347;
+}
+
+.followups-item-action-danger {
+  border-color: #f5c8c4;
+  background: #fff4f3;
+  color: #b42318;
 }
 
 .followups-refresh {

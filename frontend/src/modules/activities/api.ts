@@ -5,6 +5,8 @@ export type ActivityType =
   | 'LEAD_STATUS_UPDATED'
   | 'FOLLOWUP_CREATED'
   | 'FOLLOWUP_DONE'
+  | 'FOLLOWUP_UPDATED'
+  | 'FOLLOWUP_CANCELED'
 
 export interface Activity {
   id: string

@@ -9,7 +9,10 @@ interface CreateFollowUpPanelProps {
   isCreatingFollowUp: boolean
   createFollowUpErrorMessage: string
   onCreateFollowUp: (event: FormEvent<HTMLFormElement>) => void
-  onFollowUpFieldChange: (field: keyof FollowUpFormData, value: string) => void
+  onFollowUpFieldChange: (
+    field: keyof FollowUpFormData,
+    value: FollowUpFormData[keyof FollowUpFormData]
+  ) => void
 }
 
 export function CreateFollowUpPanel({
@@ -28,6 +31,18 @@ export function CreateFollowUpPanel({
       </header>
 
       <form className="auth-form followups-form" onSubmit={onCreateFollowUp}>
+        <label>
+          Título do follow-up
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(event) => onFollowUpFieldChange('title', event.target.value)}
+            placeholder="Ex: Retornar proposta comercial"
+            maxLength={120}
+            required
+          />
+        </label>
+
         <label>
           Lead
           <select
@@ -56,6 +71,29 @@ export function CreateFollowUpPanel({
             maxLength={10}
             placeholder="dd/mm/aaaa"
             required
+          />
+        </label>
+
+        <label>
+          Prioridade
+          <select
+            value={formData.priority}
+            onChange={(event) => onFollowUpFieldChange('priority', event.target.value)}
+            required
+          >
+            <option value="LOW">Baixa</option>
+            <option value="MEDIUM">Média</option>
+            <option value="HIGH">Alta</option>
+          </select>
+        </label>
+
+        <label>
+          Observações
+          <textarea
+            value={formData.notes}
+            onChange={(event) => onFollowUpFieldChange('notes', event.target.value)}
+            placeholder="Contexto do próximo contato, objeções e próximos passos..."
+            maxLength={1000}
           />
         </label>
 

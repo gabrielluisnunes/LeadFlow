@@ -35,6 +35,10 @@ function getActivityLabel(activity: Activity) {
       return 'Follow-up criado'
     case 'FOLLOWUP_DONE':
       return 'Follow-up concluído'
+    case 'FOLLOWUP_UPDATED':
+      return 'Follow-up reagendado/atualizado'
+    case 'FOLLOWUP_CANCELED':
+      return 'Follow-up cancelado'
     default:
       return activity.type
   }
@@ -50,6 +54,10 @@ function getActivityEmoji(type: ActivityType) {
       return '📅'
     case 'FOLLOWUP_DONE':
       return '✅'
+    case 'FOLLOWUP_UPDATED':
+      return '🗓️'
+    case 'FOLLOWUP_CANCELED':
+      return '🚫'
     default:
       return '📝'
   }
@@ -111,7 +119,9 @@ export function ActivitiesSection({
         LEAD_CREATED: 0,
         LEAD_STATUS_UPDATED: 0,
         FOLLOWUP_CREATED: 0,
-        FOLLOWUP_DONE: 0
+        FOLLOWUP_DONE: 0,
+        FOLLOWUP_UPDATED: 0,
+        FOLLOWUP_CANCELED: 0
       } as Record<ActivityType, number>
     )
   }, [periodFilteredActivities])
@@ -148,7 +158,19 @@ export function ActivitiesSection({
       count: activityCounts.FOLLOWUP_CREATED,
       emoji: '📅'
     },
-    { key: 'FOLLOWUP_DONE', label: 'Follow-up concluído', count: activityCounts.FOLLOWUP_DONE, emoji: '✅' }
+    { key: 'FOLLOWUP_DONE', label: 'Follow-up concluído', count: activityCounts.FOLLOWUP_DONE, emoji: '✅' },
+    {
+      key: 'FOLLOWUP_UPDATED',
+      label: 'Follow-up atualizado',
+      count: activityCounts.FOLLOWUP_UPDATED,
+      emoji: '🗓️'
+    },
+    {
+      key: 'FOLLOWUP_CANCELED',
+      label: 'Follow-up cancelado',
+      count: activityCounts.FOLLOWUP_CANCELED,
+      emoji: '🚫'
+    }
   ]
 
   return (

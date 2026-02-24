@@ -1,0 +1,21 @@
+CREATE TYPE "FollowUpPriority" AS ENUM ('LOW', 'MEDIUM', 'HIGH');
+
+CREATE TYPE "FollowUpStatus" AS ENUM ('PENDING', 'DONE', 'CANCELED');
+
+ALTER TYPE "ActivityType" ADD VALUE 'FOLLOWUP_UPDATED';
+
+ALTER TYPE "ActivityType" ADD VALUE 'FOLLOWUP_CANCELED';
+
+ALTER TABLE "FollowUp"
+ADD COLUMN "title" TEXT NOT NULL DEFAULT 'Follow-up',
+ADD COLUMN "priority" "FollowUpPriority" NOT NULL DEFAULT 'MEDIUM',
+ADD COLUMN "status" "FollowUpStatus" NOT NULL DEFAULT 'PENDING',
+ADD COLUMN "notes" TEXT,
+ADD COLUMN "outcome" TEXT,
+ADD COLUMN "canceledAt" TIMESTAMP(3);
+
+UPDATE "FollowUp"
+SET "status" = CASE
+  WHEN "doneAt" IS NOT NULL THEN 'DONE'::"FollowUpStatus"
+  ELSE 'PENDING'::"FollowUpStatus"
+END;

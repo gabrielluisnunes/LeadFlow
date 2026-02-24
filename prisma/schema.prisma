@@ -64,8 +64,14 @@ model FollowUp {
   workspaceId String
   leadId      String
 
+  title       String
+  priority    FollowUpPriority @default(MEDIUM)
+  status      FollowUpStatus   @default(PENDING)
+  notes       String?
+  outcome     String?
   scheduledAt DateTime
   doneAt      DateTime?
+  canceledAt  DateTime?
   createdAt   DateTime @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id])
@@ -98,6 +104,20 @@ enum ActivityType {
   LEAD_STATUS_UPDATED
   FOLLOWUP_CREATED
   FOLLOWUP_DONE
+  FOLLOWUP_UPDATED
+  FOLLOWUP_CANCELED
+}
+
+enum FollowUpPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum FollowUpStatus {
+  PENDING
+  DONE
+  CANCELED
 }
 
 model Activity {

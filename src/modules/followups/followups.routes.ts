@@ -1,6 +1,11 @@
 import { FastifyInstance } from 'fastify'
 import { FollowUpsService } from './followups.service.js'
-import { createFollowupSchema} from './followups.schemas.js'
+import {
+  cancelFollowupSchema,
+  concludeFollowupSchema,
+  createFollowupSchema,
+  rescheduleFollowupSchema
+} from './followups.schemas.js'
 
 export async function followUpsRoutes(app: FastifyInstance) {
   const followUpsService = new FollowUpsService()
@@ -15,7 +20,10 @@ export async function followUpsRoutes(app: FastifyInstance) {
     const followUp = await followUpsService.create({
       workspaceId,
       leadId: body.leadId,
-      scheduledAt: new Date(body.scheduledAt)
+      scheduledAt: new Date(body.scheduledAt),
+      title: body.title,
+      priority: body.priority,
+      notes: body.notes
     })
 
     return reply.code(201).send({
@@ -69,11 +77,46 @@ export async function followUpsRoutes(app: FastifyInstance) {
 
   app.patch('/:followUpId/done', async (request) => {
     const { followUpId } = request.params as { followUpId: string }
+    const body = concludeFollowupSchema.parse(request.body ?? {})
     const workspaceId = request.user.workspaceId
 
     const followUp = await followUpsService.markAsDone({
       workspaceId,
-      followUpId
+      followUpId,
+      outcome: body.outcome
+    })
+
+    return {
+      data: followUp
+    }
+  })
+
+  app.patch('/:followUpId/cancel', async (request) => {
+    const { followUpId } = request.params as { followUpId: string }
+    const body = cancelFollowupSchema.parse(request.body ?? {})
+    const workspaceId = request.user.workspaceId
+
+    const followUp = await followUpsService.cancel({
+      workspaceId,
+      followUpId,
+      reason: body.reason
+    })
+
+    return {
+      data: followUp
+    }
+  })
+
+  app.patch('/:followUpId/reschedule', async (request) => {
+    const { followUpId } = request.params as { followUpId: string }
+    const body = rescheduleFollowupSchema.parse(request.body)
+    const workspaceId = request.user.workspaceId
+
+    const followUp = await followUpsService.reschedule({
+      workspaceId,
+      followUpId,
+      scheduledAt: new Date(body.scheduledAt),
+      notes: body.notes
     })
 
     return {

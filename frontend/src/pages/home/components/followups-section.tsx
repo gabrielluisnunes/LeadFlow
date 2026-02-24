@@ -3,9 +3,9 @@ import type { Lead } from '../../../modules/leads/api'
 import type { FollowUpWithLead } from '../../../modules/followups/api'
 import { CreateFollowUpPanel } from './followups/create-followup-panel'
 import { FollowUpsAgendaPanel } from './followups/followups-agenda-panel'
-import type { FollowUpFormData } from './followups/types'
+import type { FollowUpAction, FollowUpFormData } from './followups/types'
 
-export type { FollowUpFormData } from './followups/types'
+export type { FollowUpAction, FollowUpFormData } from './followups/types'
 
 interface FollowUpsSectionProps {
   formData: FollowUpFormData
@@ -13,14 +13,19 @@ interface FollowUpsSectionProps {
   isCreatingFollowUp: boolean
   createFollowUpErrorMessage: string
   onCreateFollowUp: (event: FormEvent<HTMLFormElement>) => void
-  onFollowUpFieldChange: (field: keyof FollowUpFormData, value: string) => void
+  onFollowUpFieldChange: (
+    field: keyof FollowUpFormData,
+    value: FollowUpFormData[keyof FollowUpFormData]
+  ) => void
   isLoadingFollowUps: boolean
   followUpErrorMessage: string
   todayFollowUps: FollowUpWithLead[]
   overdueFollowUps: FollowUpWithLead[]
   upcomingFollowUps: FollowUpWithLead[]
-  isMarkingDoneId: string | null
+  activeFollowUpAction: { followUpId: string; action: FollowUpAction } | null
   onMarkFollowUpAsDone: (followUpId: string) => void
+  onRescheduleFollowUp: (followUpId: string, currentScheduledAt: string) => void
+  onCancelFollowUp: (followUpId: string) => void
   onRefreshAgenda: () => void
   formatDateTime: (value: string) => string
 }
@@ -37,8 +42,10 @@ export function FollowUpsSection({
   todayFollowUps,
   overdueFollowUps,
   upcomingFollowUps,
-  isMarkingDoneId,
+  activeFollowUpAction,
   onMarkFollowUpAsDone,
+  onRescheduleFollowUp,
+  onCancelFollowUp,
   onRefreshAgenda,
   formatDateTime
 }: FollowUpsSectionProps) {
@@ -104,8 +111,10 @@ export function FollowUpsSection({
           groups={groups}
           isLoadingFollowUps={isLoadingFollowUps}
           followUpErrorMessage={followUpErrorMessage}
-          isMarkingDoneId={isMarkingDoneId}
+          activeFollowUpAction={activeFollowUpAction}
           onMarkFollowUpAsDone={onMarkFollowUpAsDone}
+          onRescheduleFollowUp={onRescheduleFollowUp}
+          onCancelFollowUp={onCancelFollowUp}
           onRefreshAgenda={onRefreshAgenda}
           formatDateTime={formatDateTime}
         />

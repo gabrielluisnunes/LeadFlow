@@ -29,16 +29,19 @@ import {
 } from '../modules/leads/api'
 import { formatDateBR, parseDateBRToIso } from '../lib/format-date-br'
 import {
+  cancelFollowUp,
+  concludeFollowUp,
   createFollowUp,
   listOverdueFollowUps,
   listTodayFollowUps,
   listUpcomingFollowUps,
-  markFollowUpAsDone,
+  rescheduleFollowUp,
+  type FollowUpPriority,
   type FollowUpWithLead
 } from '../modules/followups/api'
 import { listActivities, type Activity } from '../modules/activities/api'
 import { getLeadsOverviewMetrics, type LeadsOverviewMetrics } from '../modules/metrics/api'
-import type { FollowUpFormData } from './home/components/followups-section'
+import type { FollowUpAction, FollowUpFormData } from './home/components/followups-section'
 
 const MetricsSection = lazy(() =>
   import('./home/components/metrics-section').then((module) => ({
@@ -108,7 +111,10 @@ export function HomePage() {
   const [followUpErrorMessage, setFollowUpErrorMessage] = useState('')
   const [isCreatingFollowUp, setIsCreatingFollowUp] = useState(false)
   const [createFollowUpErrorMessage, setCreateFollowUpErrorMessage] = useState('')
-  const [isMarkingDoneId, setIsMarkingDoneId] = useState<string | null>(null)
+  const [activeFollowUpAction, setActiveFollowUpAction] = useState<{
+    followUpId: string
+    action: FollowUpAction
+  } | null>(null)
 
   const [metrics, setMetrics] = useState<LeadsOverviewMetrics | null>(null)
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true)
@@ -129,7 +135,10 @@ export function HomePage() {
 
   const [followUpFormData, setFollowUpFormData] = useState<FollowUpFormData>({
     leadId: '',
-    scheduledAt: ''
+    scheduledAt: '',
+    title: '',
+    priority: 'MEDIUM' as FollowUpPriority,
+    notes: ''
   })
 
   const [profileName, setProfileName] = useState('LeadFlow CRM')
@@ -395,8 +404,14 @@ export function HomePage() {
     }
   }
 
-  function handleFollowUpFieldChange(field: keyof FollowUpFormData, value: string) {
-    setFollowUpFormData((current) => ({ ...current, [field]: value }))
+  function handleFollowUpFieldChange(
+    field: keyof FollowUpFormData,
+    value: FollowUpFormData[keyof FollowUpFormData]
+  ) {
+    setFollowUpFormData((current) => ({
+      ...current,
+      [field]: value
+    }))
   }
 
   async function handleCreateFollowUp(event: FormEvent<HTMLFormElement>) {
@@ -415,12 +430,18 @@ export function HomePage() {
     try {
       await createFollowUp({
         leadId: followUpFormData.leadId,
-        scheduledAt: scheduledAtIso
+        scheduledAt: scheduledAtIso,
+        title: followUpFormData.title,
+        priority: followUpFormData.priority,
+        notes: followUpFormData.notes || undefined
       })
 
       setFollowUpFormData({
         leadId: '',
-        scheduledAt: ''
+        scheduledAt: '',
+        title: '',
+        priority: 'MEDIUM',
+        notes: ''
       })
 
       await Promise.all([loadFollowUpsAgenda(), loadActivities()])
@@ -433,15 +454,49 @@ export function HomePage() {
 
   async function handleMarkFollowUpAsDone(followUpId: string) {
     setFollowUpErrorMessage('')
-    setIsMarkingDoneId(followUpId)
+    setActiveFollowUpAction({ followUpId, action: 'done' })
 
     try {
-      await markFollowUpAsDone(followUpId)
+      await concludeFollowUp(followUpId)
       await Promise.all([loadFollowUpsAgenda(), loadActivities()])
     } catch (error) {
       handleApiError(error, 'Não foi possível concluir o follow-up', setFollowUpErrorMessage)
     } finally {
-      setIsMarkingDoneId(null)
+      setActiveFollowUpAction(null)
+    }
+  }
+
+  async function handleRescheduleFollowUp(followUpId: string, currentScheduledAt: string) {
+    setFollowUpErrorMessage('')
+    setActiveFollowUpAction({ followUpId, action: 'reschedule' })
+
+    try {
+      const currentDate = new Date(currentScheduledAt)
+      currentDate.setDate(currentDate.getDate() + 1)
+
+      await rescheduleFollowUp(followUpId, {
+        scheduledAt: currentDate.toISOString()
+      })
+
+      await Promise.all([loadFollowUpsAgenda(), loadActivities()])
+    } catch (error) {
+      handleApiError(error, 'Não foi possível reagendar o follow-up', setFollowUpErrorMessage)
+    } finally {
+      setActiveFollowUpAction(null)
+    }
+  }
+
+  async function handleCancelFollowUp(followUpId: string) {
+    setFollowUpErrorMessage('')
+    setActiveFollowUpAction({ followUpId, action: 'cancel' })
+
+    try {
+      await cancelFollowUp(followUpId)
+      await Promise.all([loadFollowUpsAgenda(), loadActivities()])
+    } catch (error) {
+      handleApiError(error, 'Não foi possível cancelar o follow-up', setFollowUpErrorMessage)
+    } finally {
+      setActiveFollowUpAction(null)
     }
   }
 
@@ -589,8 +644,10 @@ export function HomePage() {
             todayFollowUps={todayFollowUps}
             overdueFollowUps={overdueFollowUps}
             upcomingFollowUps={upcomingFollowUps}
-            isMarkingDoneId={isMarkingDoneId}
+            activeFollowUpAction={activeFollowUpAction}
             onMarkFollowUpAsDone={handleMarkFollowUpAsDone}
+            onRescheduleFollowUp={handleRescheduleFollowUp}
+            onCancelFollowUp={handleCancelFollowUp}
             onRefreshAgenda={loadFollowUpsAgenda}
             formatDateTime={formatDateTime}
           />

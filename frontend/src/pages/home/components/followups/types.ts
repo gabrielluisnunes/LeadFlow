@@ -1,8 +1,11 @@
-import type { FollowUpWithLead } from '../../../../modules/followups/api'
+import type { FollowUpPriority, FollowUpWithLead } from '../../../../modules/followups/api'
 
 export interface FollowUpFormData {
   leadId: string
   scheduledAt: string
+  title: string
+  priority: FollowUpPriority
+  notes: string
 }
 
 export interface FollowUpGroup {
@@ -11,3 +14,5 @@ export interface FollowUpGroup {
   emptyMessage: string
   items: FollowUpWithLead[]
 }
+
+export type FollowUpAction = 'done' | 'reschedule' | 'cancel'

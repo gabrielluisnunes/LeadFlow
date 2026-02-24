@@ -1,5 +1,5 @@
 import { prisma } from '../../lib/prisma.js'
-import { ActivityType } from '@prisma/client'
+import { ActivityType, FollowUpPriority, FollowUpStatus } from '@prisma/client'
 import { ActivitiesService } from '../activities/activities.service.js'
 import { NotFoundError } from '../../errors/app-error.js'
 
@@ -7,6 +7,9 @@ interface CreateFollowUpInput {
   workspaceId: string
   leadId: string
   scheduledAt: Date
+  title: string
+  priority: FollowUpPriority
+  notes?: string
 }
 
 export class FollowUpsService {
@@ -30,7 +33,11 @@ export class FollowUpsService {
         data: {
           workspaceId: data.workspaceId,
           leadId: data.leadId,
-          scheduledAt: data.scheduledAt
+          scheduledAt: data.scheduledAt,
+          title: data.title.trim(),
+          priority: data.priority,
+          notes: data.notes?.trim() || null,
+          status: FollowUpStatus.PENDING
         }
       })
 
@@ -41,7 +48,9 @@ export class FollowUpsService {
           leadId: data.leadId,
           followUpId: followUp.id,
           payload: {
-            scheduledAt: followUp.scheduledAt
+            scheduledAt: followUp.scheduledAt,
+            title: followUp.title,
+            priority: followUp.priority
           }
         },
         tx
@@ -61,7 +70,7 @@ export class FollowUpsService {
     const followUps = await prisma.followUp.findMany({
       where: {
         workspaceId,
-        doneAt: null,
+        status: FollowUpStatus.PENDING,
         scheduledAt: {
           gte: startOfDay,
           lte: endOfDay
@@ -92,7 +101,7 @@ export class FollowUpsService {
     return followUps
   }
 
-  async markAsDone(params: { workspaceId: string; followUpId: string }) {
+  async markAsDone(params: { workspaceId: string; followUpId: string; outcome?: string }) {
     return prisma.$transaction(async (tx) => {
       const followUp = await tx.followUp.findFirst({
         where: {
@@ -110,7 +119,10 @@ export class FollowUpsService {
           id: followUp.id
         },
         data: {
-          doneAt: new Date()
+          doneAt: new Date(),
+          status: FollowUpStatus.DONE,
+          outcome: params.outcome?.trim() || null,
+          canceledAt: null
         }
       })
 
@@ -119,7 +131,10 @@ export class FollowUpsService {
           workspaceId: params.workspaceId,
           type: ActivityType.FOLLOWUP_DONE,
           leadId: updated.leadId,
-          followUpId: updated.id
+          followUpId: updated.id,
+          payload: {
+            outcome: updated.outcome
+          }
         },
         tx
       )
@@ -134,7 +149,7 @@ export class FollowUpsService {
     const followUps = await prisma.followUp.findMany({
       where: {
         workspaceId,
-        doneAt: null,
+        status: FollowUpStatus.PENDING,
         scheduledAt: {
           lt: now
         }
@@ -159,7 +174,7 @@ export class FollowUpsService {
     const followUps = await prisma.followUp.findMany({
       where: {
         workspaceId,
-        doneAt: null,
+        status: FollowUpStatus.PENDING,
         scheduledAt: {
           gt: now,
           lte: limitDate
@@ -174,5 +189,92 @@ export class FollowUpsService {
     })
 
     return followUps
+  }
+
+  async cancel(params: { workspaceId: string; followUpId: string; reason?: string }) {
+    return prisma.$transaction(async (tx) => {
+      const followUp = await tx.followUp.findFirst({
+        where: {
+          id: params.followUpId,
+          workspaceId: params.workspaceId
+        }
+      })
+
+      if (!followUp) {
+        throw new NotFoundError('Follow-up não encontrado')
+      }
+
+      const updated = await tx.followUp.update({
+        where: {
+          id: followUp.id
+        },
+        data: {
+          status: FollowUpStatus.CANCELED,
+          canceledAt: new Date(),
+          doneAt: null,
+          outcome: params.reason?.trim() || null
+        }
+      })
+
+      await this.activities.create(
+        {
+          workspaceId: params.workspaceId,
+          type: ActivityType.FOLLOWUP_CANCELED,
+          leadId: updated.leadId,
+          followUpId: updated.id,
+          payload: {
+            reason: updated.outcome
+          }
+        },
+        tx
+      )
+
+      return updated
+    })
+  }
+
+  async reschedule(params: { workspaceId: string; followUpId: string; scheduledAt: Date; notes?: string }) {
+    return prisma.$transaction(async (tx) => {
+      const followUp = await tx.followUp.findFirst({
+        where: {
+          id: params.followUpId,
+          workspaceId: params.workspaceId
+        }
+      })
+
+      if (!followUp) {
+        throw new NotFoundError('Follow-up não encontrado')
+      }
+
+      const updated = await tx.followUp.update({
+        where: {
+          id: followUp.id
+        },
+        data: {
+          scheduledAt: params.scheduledAt,
+          notes: params.notes?.trim() || followUp.notes,
+          status: FollowUpStatus.PENDING,
+          doneAt: null,
+          canceledAt: null,
+          outcome: null
+        }
+      })
+
+      await this.activities.create(
+        {
+          workspaceId: params.workspaceId,
+          type: ActivityType.FOLLOWUP_UPDATED,
+          leadId: updated.leadId,
+          followUpId: updated.id,
+          payload: {
+            scheduledAt: updated.scheduledAt,
+            notes: updated.notes
+          }
+        },
+        tx
+      )
+
+      return updated
+    })
   }
 }
