@@ -155,7 +155,6 @@ export function ActivitiesSection({
     <section className="activities-page">
       <header className="activities-header">
         <div>
-          <h2>Atividades</h2>
           <p>Monitore tudo que aconteceu no CRM e filtre rapidamente por tipo de ação.</p>
         </div>
 

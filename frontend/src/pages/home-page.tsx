@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { signOut } from '../modules/auth/session'
 import { getToken } from '../lib/token-storage'
+import { BrandLogo } from '../components/brand-logo'
 import { useApiErrorHandler } from '../hooks/use-api-error-handler'
 import {
   addLeadNote,
@@ -561,10 +562,7 @@ export function HomePage() {
             <ChevronLeft size={18} strokeWidth={2.2} aria-hidden="true" />
           </button>
 
-          <div className="sidebar-brand">
-            <span className="sidebar-brand-drop" aria-hidden="true" />
-            <span>LeadFlow</span>
-          </div>
+          <BrandLogo className="sidebar-brand" />
 
           <nav className="sidebar-nav" aria-label="Navegação principal">
             {menuItems.map((item) => (

@@ -5,6 +5,7 @@ import { register } from '../modules/auth/api'
 import { isAuthenticated } from '../modules/auth/session'
 import { setToken } from '../lib/token-storage'
 import { ApiError } from '../types/api'
+import { BrandLogo } from '../components/brand-logo'
 import './login-page.css'
 
 export function RegisterPage() {
@@ -50,14 +51,11 @@ export function RegisterPage() {
   return (
     <main className="login-page">
       <header className="login-topbar">
-        <div className="login-brand">
-          <span className="brand-drop" aria-hidden="true" />
-          <span>LeadFlow</span>
-        </div>
+        <BrandLogo className="login-brand" />
       </header>
 
       <section className="login-hero">
-        <span className="hero-drop" aria-hidden="true" />
+        <BrandLogo className="login-hero-logo" showText={false} />
         <h1>Criar conta</h1>
         <p className="login-subtitle">Cadastre-se para começar a usar o LeadFlow.</p>
 

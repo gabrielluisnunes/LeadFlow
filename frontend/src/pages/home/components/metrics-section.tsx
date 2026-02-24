@@ -90,12 +90,6 @@ export function MetricsSection({
     <section className="metrics-page">
       <header className="metrics-header">
         <div>
-          <h2 className="title-with-emoji">
-            <span className="title-emoji" aria-hidden="true">
-              📊
-            </span>
-            <span>Métricas</span>
-          </h2>
           <p>Painel de desempenho do funil com leitura rápida para tomada de decisão.</p>
         </div>
 

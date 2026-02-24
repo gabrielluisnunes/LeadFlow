@@ -13,21 +13,7 @@
 }
 
 .login-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-weight: 700;
   font-size: 1.65rem;
-  color: #2a3355;
-}
-
-.brand-drop {
-  width: 22px;
-  height: 22px;
-  background: #3b6df6;
-  border-radius: 60% 60% 70% 70% / 72% 72% 36% 36%;
-  transform: rotate(45deg);
-  display: inline-block;
 }
 
 .login-hero {
@@ -37,14 +23,40 @@
   justify-items: center;
 }
 
-.hero-drop {
-  width: 58px;
-  height: 58px;
-  background: #3b6df6;
-  border-radius: 60% 60% 70% 70% / 72% 72% 36% 36%;
-  transform: rotate(45deg);
-  display: inline-block;
+.login-hero-logo {
   margin-bottom: 0.5rem;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.brand-logo-mark {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.brand-logo-text {
+  color: #1f2a4d;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.login-brand .brand-logo-mark {
+  width: 52px;
+  height: 52px;
+}
+
+.login-brand .brand-logo-text {
+  font-size: 2.35rem;
+}
+
+.login-hero-logo .brand-logo-mark {
+  width: 64px;
+  height: 64px;
 }
 
 .login-hero h1 {
