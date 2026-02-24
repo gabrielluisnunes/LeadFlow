@@ -1,5 +1,5 @@
 import { prisma } from '../../lib/prisma.js'
-import { ActivityType, FollowUpPriority, FollowUpStatus } from '@prisma/client'
+import { ActivityType, FollowUpPriority, FollowUpStatus, LeadStatus } from '@prisma/client'
 import { ActivitiesService } from '../activities/activities.service.js'
 import { NotFoundError } from '../../errors/app-error.js'
 
@@ -40,6 +40,30 @@ export class FollowUpsService {
           status: FollowUpStatus.PENDING
         }
       })
+
+      const updatedLead = await tx.lead.update({
+        where: {
+          id: data.leadId
+        },
+        data: {
+          status: LeadStatus.CONTACTED
+        }
+      })
+
+      if (lead.status !== updatedLead.status) {
+        await this.activities.create(
+          {
+            workspaceId: data.workspaceId,
+            type: ActivityType.LEAD_STATUS_UPDATED,
+            leadId: updatedLead.id,
+            payload: {
+              from: lead.status,
+              to: updatedLead.status
+            }
+          },
+          tx
+        )
+      }
 
       await this.activities.create(
         {
@@ -139,6 +163,37 @@ export class FollowUpsService {
         tx
       )
 
+      const lead = await tx.lead.findFirst({
+        where: {
+          id: updated.leadId,
+          workspaceId: params.workspaceId
+        }
+      })
+
+      if (lead && lead.status !== LeadStatus.WON) {
+        await tx.lead.update({
+          where: {
+            id: lead.id
+          },
+          data: {
+            status: LeadStatus.WON
+          }
+        })
+
+        await this.activities.create(
+          {
+            workspaceId: params.workspaceId,
+            type: ActivityType.LEAD_STATUS_UPDATED,
+            leadId: lead.id,
+            payload: {
+              from: lead.status,
+              to: LeadStatus.WON
+            }
+          },
+          tx
+        )
+      }
+
       return updated
     })
   }
@@ -212,7 +267,7 @@ export class FollowUpsService {
           status: FollowUpStatus.CANCELED,
           canceledAt: new Date(),
           doneAt: null,
-          outcome: params.reason?.trim() || null
+          outcome: params.reason?.trim() || 'Perdido'
         }
       })
 
@@ -228,6 +283,37 @@ export class FollowUpsService {
         },
         tx
       )
+
+      const lead = await tx.lead.findFirst({
+        where: {
+          id: updated.leadId,
+          workspaceId: params.workspaceId
+        }
+      })
+
+      if (lead && lead.status !== LeadStatus.LOST) {
+        await tx.lead.update({
+          where: {
+            id: lead.id
+          },
+          data: {
+            status: LeadStatus.LOST
+          }
+        })
+
+        await this.activities.create(
+          {
+            workspaceId: params.workspaceId,
+            type: ActivityType.LEAD_STATUS_UPDATED,
+            leadId: lead.id,
+            payload: {
+              from: lead.status,
+              to: LeadStatus.LOST
+            }
+          },
+          tx
+        )
+      }
 
       return updated
     })
