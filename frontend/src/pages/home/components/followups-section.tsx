@@ -1,12 +1,11 @@
 import type { FormEvent } from 'react'
 import type { Lead } from '../../../modules/leads/api'
 import type { FollowUpWithLead } from '../../../modules/followups/api'
-import { maskDateBRInput } from '../../../lib/format-date-br'
+import { CreateFollowUpPanel } from './followups/create-followup-panel'
+import { FollowUpsAgendaPanel } from './followups/followups-agenda-panel'
+import type { FollowUpFormData } from './followups/types'
 
-interface FollowUpFormData {
-  leadId: string
-  scheduledAt: string
-}
+export type { FollowUpFormData } from './followups/types'
 
 interface FollowUpsSectionProps {
   formData: FollowUpFormData
@@ -43,135 +42,74 @@ export function FollowUpsSection({
   onRefreshAgenda,
   formatDateTime
 }: FollowUpsSectionProps) {
+  const groups = [
+    {
+      key: 'today' as const,
+      title: 'Hoje',
+      emptyMessage: 'Nenhum follow-up para hoje.',
+      items: todayFollowUps
+    },
+    {
+      key: 'overdue' as const,
+      title: 'Atrasados',
+      emptyMessage: 'Nenhum follow-up atrasado.',
+      items: overdueFollowUps
+    },
+    {
+      key: 'upcoming' as const,
+      title: 'Próximos (7 dias)',
+      emptyMessage: 'Nenhum follow-up próximo.',
+      items: upcomingFollowUps
+    }
+  ]
+
+  const openCount = todayFollowUps.length + overdueFollowUps.length + upcomingFollowUps.length
+
   return (
-    <>
-      <section className="list-section">
-        <h2>Novo follow-up</h2>
+    <section className="followups-page">
+      <header className="followups-header">
+        <p>Organize os próximos contatos do time e marque conclusões em um clique.</p>
+      </header>
 
-        <form className="auth-form" onSubmit={onCreateFollowUp}>
-          <label>
-            Lead
-            <select
-              value={formData.leadId}
-              onChange={(event) => onFollowUpFieldChange('leadId', event.target.value)}
-              required
-            >
-              <option value="">Selecione um lead</option>
-              {leads.map((lead) => (
-                <option key={lead.id} value={lead.id}>
-                  {lead.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Data
-            <input
-              type="text"
-              value={formData.scheduledAt}
-              onChange={(event) =>
-                onFollowUpFieldChange('scheduledAt', maskDateBRInput(event.target.value))
-              }
-              inputMode="numeric"
-              maxLength={10}
-              placeholder="dd/mm/aaaa"
-              required
-            />
-          </label>
-
-          {createFollowUpErrorMessage ? (
-            <p className="form-error">{createFollowUpErrorMessage}</p>
-          ) : null}
-
-          <button type="submit" disabled={isCreatingFollowUp || leads.length === 0}>
-            {isCreatingFollowUp ? 'Salvando...' : 'Criar follow-up'}
-          </button>
-        </form>
+      <section className="followups-summary-grid" aria-label="Resumo de follow-ups">
+        <article className="followups-summary-card">
+          <small>Abertos</small>
+          <strong>{openCount}</strong>
+        </article>
+        <article className="followups-summary-card">
+          <small>Hoje</small>
+          <strong>{todayFollowUps.length}</strong>
+        </article>
+        <article className="followups-summary-card">
+          <small>Atrasados</small>
+          <strong>{overdueFollowUps.length}</strong>
+        </article>
+        <article className="followups-summary-card">
+          <small>Próximos</small>
+          <strong>{upcomingFollowUps.length}</strong>
+        </article>
       </section>
 
-      <section className="list-section">
-        <h2>Agenda de follow-ups</h2>
+      <section className="followups-layout-grid">
+        <CreateFollowUpPanel
+          formData={formData}
+          leads={leads}
+          isCreatingFollowUp={isCreatingFollowUp}
+          createFollowUpErrorMessage={createFollowUpErrorMessage}
+          onCreateFollowUp={onCreateFollowUp}
+          onFollowUpFieldChange={onFollowUpFieldChange}
+        />
 
-        {isLoadingFollowUps ? <p>Carregando agenda...</p> : null}
-        {!isLoadingFollowUps && followUpErrorMessage ? (
-          <p className="form-error">{followUpErrorMessage}</p>
-        ) : null}
-
-        {!isLoadingFollowUps && !followUpErrorMessage ? (
-          <>
-            <h3>Hoje</h3>
-            {todayFollowUps.length > 0 ? (
-              <ul className="followup-list">
-                {todayFollowUps.map((followUp) => (
-                  <li key={followUp.id} className="followup-item">
-                    <div>
-                      <strong>{followUp.lead.name}</strong> — {formatDateTime(followUp.scheduledAt)}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onMarkFollowUpAsDone(followUp.id)}
-                      disabled={isMarkingDoneId === followUp.id}
-                    >
-                      {isMarkingDoneId === followUp.id ? 'Concluindo...' : 'Concluir'}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Nenhum follow-up para hoje.</p>
-            )}
-
-            <h3>Atrasados</h3>
-            {overdueFollowUps.length > 0 ? (
-              <ul className="followup-list">
-                {overdueFollowUps.map((followUp) => (
-                  <li key={followUp.id} className="followup-item">
-                    <div>
-                      <strong>{followUp.lead.name}</strong> — {formatDateTime(followUp.scheduledAt)}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onMarkFollowUpAsDone(followUp.id)}
-                      disabled={isMarkingDoneId === followUp.id}
-                    >
-                      {isMarkingDoneId === followUp.id ? 'Concluindo...' : 'Concluir'}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Nenhum follow-up atrasado.</p>
-            )}
-
-            <h3>Próximos (7 dias)</h3>
-            {upcomingFollowUps.length > 0 ? (
-              <ul className="followup-list">
-                {upcomingFollowUps.map((followUp) => (
-                  <li key={followUp.id} className="followup-item">
-                    <div>
-                      <strong>{followUp.lead.name}</strong> — {formatDateTime(followUp.scheduledAt)}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onMarkFollowUpAsDone(followUp.id)}
-                      disabled={isMarkingDoneId === followUp.id}
-                    >
-                      {isMarkingDoneId === followUp.id ? 'Concluindo...' : 'Concluir'}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Nenhum follow-up próximo.</p>
-            )}
-
-            <button type="button" onClick={onRefreshAgenda} disabled={isLoadingFollowUps}>
-              Atualizar agenda
-            </button>
-          </>
-        ) : null}
+        <FollowUpsAgendaPanel
+          groups={groups}
+          isLoadingFollowUps={isLoadingFollowUps}
+          followUpErrorMessage={followUpErrorMessage}
+          isMarkingDoneId={isMarkingDoneId}
+          onMarkFollowUpAsDone={onMarkFollowUpAsDone}
+          onRefreshAgenda={onRefreshAgenda}
+          formatDateTime={formatDateTime}
+        />
       </section>
-    </>
+    </section>
   )
 }

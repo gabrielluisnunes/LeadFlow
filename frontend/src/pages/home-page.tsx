@@ -38,6 +38,7 @@ import {
 } from '../modules/followups/api'
 import { listActivities, type Activity } from '../modules/activities/api'
 import { getLeadsOverviewMetrics, type LeadsOverviewMetrics } from '../modules/metrics/api'
+import type { FollowUpFormData } from './home/components/followups-section'
 
 const MetricsSection = lazy(() =>
   import('./home/components/metrics-section').then((module) => ({
@@ -78,11 +79,6 @@ interface LeadFormData {
   source: string
   observation: string
   observationDateTime: string
-}
-
-interface FollowUpFormData {
-  leadId: string
-  scheduledAt: string
 }
 
 export function HomePage() {
