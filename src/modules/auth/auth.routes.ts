@@ -1,9 +1,19 @@
 import { FastifyInstance } from "fastify";
 import { AuthService } from "./auth.service.js";
-import {registerSchema, loginSchema} from "./auth.schemas.js";
+import {registerSchema, loginSchema, identifySchema} from "./auth.schemas.js";
 
 export async function authRoutes(app: FastifyInstance) {
   const authService = new AuthService();
+
+  app.post('/identify', async (request, reply) => {
+    const body = identifySchema.parse(request.body)
+
+    const result = await authService.identifyByEmail(body.email)
+
+    return reply.send({
+      data: result
+    })
+  })
 
     app.post('/register', async (request, reply) => {
     const body = registerSchema.parse(request.body)
@@ -27,7 +37,9 @@ export async function authRoutes(app: FastifyInstance) {
 
     const result = await authService.login(
       body.email,
-      body.password
+      body.password,
+      body.workspaceName,
+      body.workspaceMode
     )
 
     const token = app.jwt.sign({
