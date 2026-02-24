@@ -111,6 +111,27 @@ export class FollowUpsService {
     return followUps
   }
 
+  async listAll(workspaceId: string) {
+    const followUps = await prisma.followUp.findMany({
+      where: {
+        workspaceId
+      },
+      orderBy: [
+        {
+          scheduledAt: 'desc'
+        },
+        {
+          createdAt: 'desc'
+        }
+      ],
+      include: {
+        lead: true
+      }
+    })
+
+    return followUps
+  }
+
   async listByLead(params: { workspaceId: string; leadId: string }) {
     const followUps = await prisma.followUp.findMany({
       where: {

@@ -55,6 +55,10 @@ export function createFollowUp(input: CreateFollowUpInput) {
   })
 }
 
+export function listAllFollowUps() {
+  return request<FollowUpWithLead[]>('/followups')
+}
+
 export function listTodayFollowUps() {
   return request<FollowUpWithLead[]>('/followups/today')
 }

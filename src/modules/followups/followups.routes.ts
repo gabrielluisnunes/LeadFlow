@@ -31,6 +31,16 @@ export async function followUpsRoutes(app: FastifyInstance) {
     })
   })
 
+  app.get('/', async (request) => {
+    const workspaceId = request.user.workspaceId
+
+    const followUps = await followUpsService.listAll(workspaceId)
+
+    return {
+      data: followUps
+    }
+  })
+
   app.get('/lead/:leadId', async (request) => {
     const { leadId } = request.params as { leadId: string }
     const workspaceId = request.user.workspaceId

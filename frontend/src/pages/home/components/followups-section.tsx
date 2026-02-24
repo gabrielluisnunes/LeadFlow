@@ -3,6 +3,7 @@ import type { Lead } from '../../../modules/leads/api'
 import type { FollowUpWithLead } from '../../../modules/followups/api'
 import { CreateFollowUpPanel } from './followups/create-followup-panel'
 import { FollowUpsAgendaPanel } from './followups/followups-agenda-panel'
+import { FollowUpsAllPanel } from './followups/followups-all-panel'
 import type { FollowUpAction, FollowUpFormData } from './followups/types'
 
 export type { FollowUpAction, FollowUpFormData } from './followups/types'
@@ -22,6 +23,7 @@ interface FollowUpsSectionProps {
   todayFollowUps: FollowUpWithLead[]
   overdueFollowUps: FollowUpWithLead[]
   upcomingFollowUps: FollowUpWithLead[]
+  allFollowUps: FollowUpWithLead[]
   activeFollowUpAction: { followUpId: string; action: FollowUpAction } | null
   onMarkFollowUpAsDone: (followUpId: string) => void
   onRescheduleFollowUp: (followUpId: string, currentScheduledAt: string) => void
@@ -42,6 +44,7 @@ export function FollowUpsSection({
   todayFollowUps,
   overdueFollowUps,
   upcomingFollowUps,
+  allFollowUps,
   activeFollowUpAction,
   onMarkFollowUpAsDone,
   onRescheduleFollowUp,
@@ -119,6 +122,18 @@ export function FollowUpsSection({
           formatDateTime={formatDateTime}
         />
       </section>
+
+      <FollowUpsAllPanel
+        followUps={allFollowUps}
+        isLoadingFollowUps={isLoadingFollowUps}
+        followUpErrorMessage={followUpErrorMessage}
+        activeFollowUpAction={activeFollowUpAction}
+        onMarkFollowUpAsDone={onMarkFollowUpAsDone}
+        onRescheduleFollowUp={onRescheduleFollowUp}
+        onCancelFollowUp={onCancelFollowUp}
+        onRefreshAgenda={onRefreshAgenda}
+        formatDateTime={formatDateTime}
+      />
     </section>
   )
 }

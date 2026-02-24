@@ -32,6 +32,7 @@ import {
   cancelFollowUp,
   concludeFollowUp,
   createFollowUp,
+  listAllFollowUps,
   listOverdueFollowUps,
   listTodayFollowUps,
   listUpcomingFollowUps,
@@ -107,6 +108,7 @@ export function HomePage() {
   const [todayFollowUps, setTodayFollowUps] = useState<FollowUpWithLead[]>([])
   const [overdueFollowUps, setOverdueFollowUps] = useState<FollowUpWithLead[]>([])
   const [upcomingFollowUps, setUpcomingFollowUps] = useState<FollowUpWithLead[]>([])
+  const [allFollowUps, setAllFollowUps] = useState<FollowUpWithLead[]>([])
   const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(true)
   const [followUpErrorMessage, setFollowUpErrorMessage] = useState('')
   const [isCreatingFollowUp, setIsCreatingFollowUp] = useState(false)
@@ -173,15 +175,17 @@ export function HomePage() {
     setIsLoadingFollowUps(true)
 
     try {
-      const [today, overdue, upcoming] = await Promise.all([
+      const [today, overdue, upcoming, all] = await Promise.all([
         listTodayFollowUps(),
         listOverdueFollowUps(),
-        listUpcomingFollowUps()
+        listUpcomingFollowUps(),
+        listAllFollowUps()
       ])
 
       setTodayFollowUps(today)
       setOverdueFollowUps(overdue)
       setUpcomingFollowUps(upcoming)
+      setAllFollowUps(all)
     } catch (error) {
       handleApiError(
         error,
@@ -644,6 +648,7 @@ export function HomePage() {
             todayFollowUps={todayFollowUps}
             overdueFollowUps={overdueFollowUps}
             upcomingFollowUps={upcomingFollowUps}
+            allFollowUps={allFollowUps}
             activeFollowUpAction={activeFollowUpAction}
             onMarkFollowUpAsDone={handleMarkFollowUpAsDone}
             onRescheduleFollowUp={handleRescheduleFollowUp}
