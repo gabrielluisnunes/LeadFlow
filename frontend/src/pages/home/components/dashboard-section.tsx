@@ -224,7 +224,7 @@ export function DashboardSection({
 
             <article className="dashboard-chart-card">
               <h3>Distribuição por status</h3>
-              <div className="dashboard-chart-area">
+              <div className="dashboard-chart-area dashboard-chart-area-status">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -245,11 +245,11 @@ export function DashboardSection({
                     <Tooltip formatter={(value, name) => [`${value} lead(s)`, `${name}`]} />
                   </PieChart>
                 </ResponsiveContainer>
-
-                {!hasPieData ? (
-                  <p className="dashboard-empty">Sem dados reais ainda — este gráfico será preenchido.</p>
-                ) : null}
               </div>
+
+              {!hasPieData ? (
+                <p className="dashboard-empty-note">Sem dados reais ainda — este gráfico será preenchido.</p>
+              ) : null}
 
               <ul className="dashboard-status-legend">
                 {pieLegendData.map((item) => (

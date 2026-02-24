@@ -475,6 +475,10 @@
   height: 280px;
 }
 
+.dashboard-chart-area-status {
+  height: 240px;
+}
+
 .dashboard-status-legend {
   list-style: none;
   margin: 0;
@@ -509,7 +513,7 @@
 .dashboard-legend-content {
   display: grid;
   gap: 0.2rem;
-  min-width: 150px;
+  min-width: 0;
 }
 
 .dashboard-status-label {
@@ -568,6 +572,12 @@
   height: 100%;
   border: 1px dashed #d7dced;
   border-radius: 10px;
+}
+
+.dashboard-empty-note {
+  margin: -0.1rem 0 0.35rem;
+  color: #7a819b;
+  font-size: 0.88rem;
 }
 
 .leads-form .form-error,
@@ -2197,5 +2207,258 @@
 
   .lead-v2-open {
     gap: 0.6rem;
+  }
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-content {
+    padding: 1rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.85rem;
+  }
+
+  .overview-cards {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+
+  .recent-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-status-legend li {
+    grid-template-columns: 12px minmax(120px, 1fr) auto;
+  }
+}
+
+@media (max-width: 1024px) {
+  .dashboard-layout,
+  .dashboard-layout.sidebar-hidden,
+  .dashboard-layout.sidebar-open {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    border: 0;
+    background: rgba(15, 23, 42, 0.32);
+    z-index: 30;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: min(84vw, 320px);
+    height: 100dvh;
+    z-index: 40;
+    padding: 1rem 0.8rem;
+    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.2);
+    overflow-y: auto;
+  }
+
+  .dashboard-content {
+    min-width: 0;
+    width: 100%;
+    padding: 0.9rem;
+  }
+
+  .dashboard-analytics-kpis,
+  .metrics-kpi-grid,
+  .activities-summary-grid,
+  .followups-summary-grid {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .dashboard-analytics-grid,
+  .metrics-insights,
+  .followups-layout-grid,
+  .followups-groups-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-chart-area {
+    height: 250px;
+  }
+
+  .activity-card-main {
+    grid-template-columns: auto 1fr;
+  }
+
+  .activity-card-main small {
+    grid-column: 2;
+  }
+
+  .activity-card-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-panel {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 0.85rem;
+  }
+
+  .dashboard-header {
+    margin-bottom: 0.75rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .overview-cards,
+  .dashboard-analytics-kpis,
+  .metrics-kpi-grid,
+  .activities-summary-grid,
+  .followups-summary-grid,
+  .leads-v2-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .recent-section,
+  .leads-v2-card,
+  .followups-panel,
+  .dashboard-chart-card,
+  .metrics-distribution,
+  .metrics-insight-card,
+  .activity-card,
+  .profile-panel {
+    padding: 0.85rem;
+  }
+
+  .dashboard-chart-head,
+  .metrics-header,
+  .activities-header,
+  .followups-panel-header-inline,
+  .leads-v2-header,
+  .leads-v2-card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard-chart-switch {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .dashboard-chart-switch button {
+    flex: 1;
+  }
+
+  .dashboard-chart-area {
+    height: 230px;
+  }
+
+  .dashboard-chart-area-status {
+    height: 210px;
+  }
+
+  .dashboard-status-legend li {
+    grid-template-columns: 12px 1fr auto;
+    gap: 0.5rem;
+  }
+
+  .dashboard-status-label,
+  .dashboard-status-legend li small {
+    white-space: normal;
+  }
+
+  .compact-list li,
+  .followups-item {
+    align-items: flex-start;
+  }
+
+  .lead-v2-main,
+  .lead-v2-open,
+  .lead-v2-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lead-v2-right {
+    justify-items: start;
+  }
+
+  .leads-v2-filters,
+  .leads-filters,
+  .period-filter-group {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    width: min(90vw, 320px);
+  }
+}
+
+@media (max-width: 540px) {
+  .dashboard-content {
+    padding: 0.7rem;
+  }
+
+  .sidebar {
+    width: 100vw;
+    max-width: 100vw;
+    border-right: 0;
+  }
+
+  .sidebar-toggle-open {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .dashboard-chart-area {
+    height: 210px;
+  }
+
+  .dashboard-chart-area-status {
+    height: 190px;
+  }
+
+  .dashboard-status-legend li {
+    grid-template-columns: 10px 1fr;
+  }
+
+  .dashboard-status-legend li strong {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .dashboard-status-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dashboard-status-legend li small {
+    white-space: nowrap;
+  }
+
+  .followups-item-action,
+  .activities-refresh,
+  .metrics-refresh,
+  .dashboard-analytics-refresh,
+  .followups-refresh,
+  .leads-v2-primary,
+  .leads-v2-secondary,
+  .leads-v2-clear,
+  .leads-primary-action,
+  .leads-secondary-action {
+    width: 100%;
   }
 }

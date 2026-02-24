@@ -85,7 +85,13 @@ export function HomePage() {
   const navigate = useNavigate()
   const { handleApiError } = useApiErrorHandler()
   const [activeView, setActiveView] = useState<HomeView>('inicio')
-  const [isSidebarVisible, setIsSidebarVisible] = useState(true)
+  const [isSidebarVisible, setIsSidebarVisible] = useState(() => {
+    if (typeof window === 'undefined') {
+      return true
+    }
+
+    return window.innerWidth > 1024
+  })
 
   const [leads, setLeads] = useState<Lead[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -131,12 +137,12 @@ export function HomePage() {
   const [profileFeedback, setProfileFeedback] = useState('')
 
   const menuItems: Array<{ key: HomeView; label: string; icon: LucideIcon }> = [
-    { key: 'inicio', label: 'Inicio', icon: Home },
+    { key: 'inicio', label: 'Início', icon: Home },
     { key: 'leads', label: 'Leads', icon: Users },
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { key: 'followups', label: 'Follow-ups', icon: Calendar },
     { key: 'atividades', label: 'Atividades', icon: ClipboardList },
-    { key: 'metricas', label: 'Metricas', icon: BarChart3 }
+    { key: 'metricas', label: 'Métricas', icon: BarChart3 }
   ]
 
   async function loadLeads() {
@@ -233,6 +239,14 @@ export function HomePage() {
   function handleSignOut() {
     signOut()
     navigate('/login', { replace: true })
+  }
+
+  function handleMenuSelect(view: HomeView) {
+    setActiveView(view)
+
+    if (typeof window !== 'undefined' && window.innerWidth <= 1024) {
+      setIsSidebarVisible(false)
+    }
   }
 
   function handleProfilePhotoChange(event: ChangeEvent<HTMLInputElement>) {
@@ -647,7 +661,16 @@ export function HomePage() {
   }
 
   return (
-    <div className={`dashboard-layout ${isSidebarVisible ? '' : 'sidebar-hidden'}`}>
+    <div className={`dashboard-layout ${isSidebarVisible ? 'sidebar-open' : 'sidebar-hidden'}`}>
+      {isSidebarVisible ? (
+        <button
+          type="button"
+          className="sidebar-backdrop"
+          aria-label="Fechar menu"
+          onClick={() => setIsSidebarVisible(false)}
+        />
+      ) : null}
+
       {isSidebarVisible ? (
         <aside className="sidebar">
         <div>
@@ -668,7 +691,7 @@ export function HomePage() {
                 key={item.key}
                 type="button"
                 className={`sidebar-nav-item ${activeView === item.key ? 'active' : ''}`}
-                onClick={() => setActiveView(item.key)}
+                onClick={() => handleMenuSelect(item.key)}
               >
                 <span className="sidebar-nav-icon" aria-hidden="true">
                   <item.icon size={18} strokeWidth={2.1} />
@@ -683,7 +706,7 @@ export function HomePage() {
           <button
             type="button"
             className="profile-card"
-            onClick={() => setActiveView('perfil')}
+            onClick={() => handleMenuSelect('perfil')}
           >
             {profilePhoto ? (
               <img src={profilePhoto} alt="Foto de perfil" className="profile-card-photo" />
