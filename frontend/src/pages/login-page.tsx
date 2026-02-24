@@ -10,6 +10,7 @@ import { BrandLogo } from '../components/brand-logo'
 import './login-page.css'
 
 type FlowStep = 'IDENTIFY' | 'LOGIN' | 'REGISTER'
+type AuthStage = 'IDENTIFY' | 'AUTH'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -56,6 +57,42 @@ export function LoginPage() {
     return 'Escolha a ação e informe seus dados para continuar.'
   }, [step, workspaceMode])
 
+  function getFriendlyAuthError(error: unknown, stage: AuthStage) {
+    if (error instanceof ApiError) {
+      if (error.code === 'UNAUTHORIZED') {
+        return 'E-mail ou senha inválidos. Verifique seus dados e tente novamente.'
+      }
+
+      if (error.code === 'NOT_FOUND' && workspaceMode === 'JOIN') {
+        return 'Workspace não encontrado. Confira o nome do workspace e tente novamente.'
+      }
+
+      if (error.code === 'CONFLICT' && workspaceMode === 'CREATE') {
+        return 'Esse nome de workspace já está em uso. Escolha outro nome para continuar.'
+      }
+
+      if (error.code === 'VALIDATION_ERROR') {
+        return 'Alguns dados estão inválidos. Revise os campos e tente novamente.'
+      }
+
+      if (error.code === 'UNKNOWN_ERROR' || error.message === 'Erro ao comunicar com a API') {
+        if (stage === 'AUTH' && workspaceMode === 'JOIN') {
+          return 'Não foi possível entrar no workspace informado agora. Tente novamente em instantes.'
+        }
+
+        return 'Não foi possível concluir sua solicitação agora. Tente novamente em instantes.'
+      }
+
+      return error.message
+    }
+
+    if (stage === 'AUTH' && workspaceMode === 'JOIN') {
+      return 'Não foi possível entrar no workspace informado agora. Tente novamente em instantes.'
+    }
+
+    return 'Não foi possível concluir sua solicitação agora. Tente novamente em instantes.'
+  }
+
   async function handleIdentify() {
     setErrorMessage('')
     setIsCheckingAccount(true)
@@ -75,11 +112,7 @@ export function LoginPage() {
         setStep('REGISTER')
       }
     } catch (error) {
-      if (error instanceof ApiError) {
-        setErrorMessage(error.message)
-      } else {
-        setErrorMessage('Não foi possível verificar sua conta no momento.')
-      }
+      setErrorMessage(getFriendlyAuthError(error, 'IDENTIFY'))
     } finally {
       setIsCheckingAccount(false)
     }
@@ -109,11 +142,7 @@ export function LoginPage() {
       setToken(result.token)
       navigate('/app', { replace: true })
     } catch (error) {
-      if (error instanceof ApiError) {
-        setErrorMessage(error.message)
-      } else {
-        setErrorMessage('Não foi possível concluir o acesso agora.')
-      }
+      setErrorMessage(getFriendlyAuthError(error, 'AUTH'))
     } finally {
       setIsSubmitting(false)
     }
@@ -138,6 +167,12 @@ export function LoginPage() {
     if (nextMode) {
       setWorkspaceMode(nextMode)
     }
+  }
+
+  function goToRegister() {
+    setStep('REGISTER')
+    setPassword('')
+    setErrorMessage('')
   }
 
   return (
@@ -251,6 +286,16 @@ export function LoginPage() {
                     ? 'Entrar'
                     : 'Criar conta'}
             </button>
+
+            {step !== 'REGISTER' ? (
+              <button
+                type="button"
+                className="login-signup-cta"
+                onClick={goToRegister}
+              >
+                Quero me cadastrar
+              </button>
+            ) : null}
 
             {step !== 'IDENTIFY' ? (
               <button

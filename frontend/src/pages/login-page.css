@@ -1,12 +1,15 @@
 .login-page {
   position: relative;
-  min-height: 100vh;
-  padding: 1.5rem;
+  min-height: 100dvh;
+  padding: 1rem 1rem 1.25rem;
   background:
     radial-gradient(circle at 12% 16%, rgba(59, 130, 246, 0.14), transparent 38%),
     radial-gradient(circle at 84% 10%, rgba(37, 99, 235, 0.14), transparent 42%),
     #f5f7ff;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .login-glow {
@@ -32,23 +35,43 @@
 }
 
 .login-topbar {
-  position: relative;
-  z-index: 2;
-  max-width: 1120px;
-  margin: 0 auto;
+  position: fixed;
+  z-index: 5;
+  top: 14px;
+  left: 18px;
   display: flex;
   align-items: center;
 }
 
 .login-brand {
-  font-size: 1.6rem;
+  font-size: 1.1rem;
+}
+
+.login-brand.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  line-height: 1;
+}
+
+.login-brand .brand-logo-mark {
+  width: 34px;
+  height: 34px;
+}
+
+.login-brand .brand-logo-text {
+  font-size: 1.25rem;
+  display: block;
+  line-height: 1;
 }
 
 .login-hero {
   position: relative;
   z-index: 2;
   max-width: 1120px;
-  margin: 3rem auto 0;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 3.5rem;
   display: grid;
   justify-items: center;
   gap: 1rem;
@@ -95,14 +118,23 @@
 
 .login-card {
   width: 100%;
-  max-width: 560px;
+  max-width: 540px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid #e2e8f0;
   border-radius: 20px;
-  padding: 1.7rem;
+  padding: 1.35rem;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
   box-shadow: 0 20px 42px rgba(15, 23, 42, 0.1);
   transform-origin: center top;
   animation: card-enter 0.26s ease;
+}
+
+.login-card-register {
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
 }
 
 .login-card-identify {
@@ -123,14 +155,14 @@
 }
 
 .login-hero-logo .brand-logo-mark {
-  width: 58px;
-  height: 58px;
+  width: 44px;
+  height: 44px;
 }
 
 .login-card h1 {
   margin: 0;
   color: #1e293b;
-  font-size: 2rem;
+  font-size: 1.68rem;
   line-height: 1.15;
   letter-spacing: -0.01em;
 }
@@ -192,6 +224,23 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.login-signup-cta {
+  border: 1px dashed #93c5fd;
+  border-radius: 10px;
+  background: rgba(239, 246, 255, 0.85);
+  color: #1e40af;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.7rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-signup-cta:hover {
+  border-color: #60a5fa;
+  background: rgba(219, 234, 254, 0.9);
 }
 
 .login-secondary {
@@ -260,17 +309,38 @@
     padding: 1rem;
   }
 
+  .login-topbar {
+    top: 10px;
+    left: 10px;
+  }
+
+  .login-brand {
+    font-size: 0.95rem;
+  }
+
+  .login-brand .brand-logo-mark {
+    width: 28px;
+    height: 28px;
+  }
+
+  .login-brand .brand-logo-text {
+    font-size: 1.05rem;
+  }
+
   .login-hero {
-    margin-top: 1.4rem;
+    padding-top: 2.6rem;
   }
 
   .login-card {
-    padding: 1.2rem;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    padding: 1.05rem;
     border-radius: 16px;
   }
 
   .login-card h1 {
-    font-size: 1.6rem;
+    font-size: 1.34rem;
   }
 
   .login-switch {
